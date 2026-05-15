@@ -1,6 +1,7 @@
 import streamlit as st
 
 from src.chunker import chunk_text
+from src.embedding_client import embed_texts
 from src.pdf_loader import extract_text_from_pdf
 
 
@@ -49,6 +50,20 @@ if uploaded_file is not None:
             chunks[0],
             height=250
         )
+
+        with st.spinner("Generating embeddings for chunks..."):
+            embeddings = embed_texts(chunks)
+
+        if embeddings:
+            st.subheader("Embedding Summary")
+            st.write(f"Generated {len(embeddings):,} embeddings.")
+            st.write(f"Each embedding has {len(embeddings[0]):,} dimensions.")
+
+            st.text_area(
+                "First embedding preview",
+                str(embeddings[0][:10]),
+                height=120
+            )
     else:
         st.warning(
             "No text could be extracted. This PDF may be scanned or image-based."
