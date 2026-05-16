@@ -67,8 +67,8 @@ Rules:
 - If the PDF context does not contain enough information, say that clearly before using internet context.
 - Keep PDF-based information and internet-based information separate.
 - If the PDF and internet context disagree, point out the disagreement.
-Keep the answer clear, concise, and useful for studying.
-- If the question cannot be answered based on the PDF context, say that clearly and do not attempt to answer based on internet context alone.
+- If the PDF does not answer the question and internet context is enabled, provide a separate Internet supplement instead of presenting it as the PDF answer.
+- Keep the answer clear, concise, and useful for studying.
 
 Question:
 {cleaned_question}
