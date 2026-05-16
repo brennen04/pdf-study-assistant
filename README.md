@@ -186,6 +186,8 @@ Additional project context:
 
 ## Current Status
 
+This project is currently a functional early RAG prototype, not a finished production-ready app.
+
 Built so far:
 
 - PDF upload
@@ -197,11 +199,37 @@ Built so far:
 - Gemini answer generation
 - cached PDF processing and embeddings
 
-Next likely steps:
+Not fully implemented yet:
 
-- improve answer/source display
-- extract Gemini citation metadata when internet grounding is enabled
-- show source chunks alongside generated answers
-- improve error handling for missing local embedding models
-- add tests for chunking and retrieval behavior
-- optionally persist document embeddings instead of recalculating them every run
+- automated tests
+- robust error handling for scanned PDFs, invalid API keys, Gemini failures, and embedding model download failures
+- polished answer/source display
+- Gemini citation metadata when internet grounding is enabled
+- persisted document embeddings
+- deployment instructions
+- OCR support for image-based PDFs
+- clean separation of PDF answer and internet supplement in the rendered UI
+- end-to-end fresh-clone verification on a clean machine
+
+## Future Implementation Roadmap
+
+High-priority next steps:
+
+- add tests for pure logic modules: `chunker`, `retriever`, `answer_builder`, and `rag_pipeline`
+- improve error handling and user-facing error messages
+- improve answer/source display so PDF evidence and internet supplement are visually separate
+- extract and display Gemini citation metadata when internet grounding is enabled
+
+Medium-priority improvements:
+
+- persist document embeddings so users do not need to recompute them every session
+- add OCR support for scanned or image-based PDFs
+- add deployment instructions
+- polish the UI while keeping the learning/debugging views available
+
+Later improvements:
+
+- support multiple LLM providers
+- support multiple PDFs or document collections
+- add evaluation examples to test answer quality
+- add a proper vector database if in-memory retrieval becomes limiting
