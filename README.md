@@ -1,3 +1,14 @@
+---
+title: PDF Study Assistant
+emoji: 📚
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 8501
+pinned: false
+short_description: PDF-first RAG study assistant with optional internet context
+---
+
 # PDF Study Assistant
 
 This project is a learning build for a local PDF study assistant using a Retrieval-Augmented Generation (RAG) architecture.
