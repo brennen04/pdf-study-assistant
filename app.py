@@ -3,6 +3,7 @@ import streamlit as st
 from src.chunker import chunk_text
 from src.embedding_client import embed_texts
 from src.pdf_loader import extract_text_from_pdf
+from src.retriever import rank_chunks_by_similarity
 
 
 st.set_page_config(
@@ -64,6 +65,32 @@ if uploaded_file is not None:
                 str(embeddings[0][:10]),
                 height=120
             )
+
+            st.subheader("Ask a Question")
+
+            question = st.text_input(
+                "Question",
+                placeholder="What are the main ideas in this PDF?"
+            )
+
+            if question.strip():
+                with st.spinner("Finding relevant PDF sections..."):
+                    query_embedding = embed_texts([question])[0]
+                    results = rank_chunks_by_similarity(
+                        query_embedding=query_embedding,
+                        chunk_embeddings=embeddings,
+                        chunks=chunks,
+                        top_k=3,
+                    )
+
+                st.write("Most relevant sections:")
+
+                for result_number, (chunk, score) in enumerate(results, start=1):
+                    with st.expander(
+                        f"Result {result_number} - similarity {score:.3f}",
+                        expanded=result_number == 1,
+                    ):
+                        st.write(chunk)
     else:
         st.warning(
             "No text could be extracted. This PDF may be scanned or image-based."
