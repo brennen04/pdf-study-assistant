@@ -176,6 +176,14 @@ As this project grows, we are following these practices:
 - Verify changes with lightweight checks before moving on.
 - Build in small steps so each layer is understandable.
 
+## Project Docs
+
+Additional project context:
+
+- `docs/architecture.md`: current architecture, module responsibilities, and data flow
+- `docs/decisions.md`: important decisions and tradeoffs
+- `CODEX.md`: local working agreement for Codex sessions
+
 ## Current Status
 
 Built so far:
