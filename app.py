@@ -1,14 +1,17 @@
+from hashlib import sha256
 from io import BytesIO
 
 import streamlit as st
 
-from src.answer_builder import build_grounded_answer_prompt
-from src.chunker import chunk_text
 from src.config import load_environment
-from src.embedding_client import embed_texts
 from src.gemini_client import generate_answer
 from src.pdf_loader import extract_text_from_pdf
-from src.retriever import rank_chunks_by_similarity
+from src.rag_pipeline import (
+    DocumentIndex,
+    QuestionContext,
+    build_document_index,
+    build_question_context,
+)
 
 
 load_environment()
@@ -20,18 +23,20 @@ def extract_text_from_pdf_bytes(file_bytes: bytes) -> str:
 
 
 @st.cache_data(show_spinner=False)
-def get_text_chunks(text: str) -> list[str]:
-    return chunk_text(text)
+def get_document_index(text: str) -> DocumentIndex:
+    return build_document_index(text)
 
 
-@st.cache_data(show_spinner=False)
-def get_chunk_embeddings(chunks: tuple[str, ...]) -> list[list[float]]:
-    return embed_texts(list(chunks))
-
-
-@st.cache_data(show_spinner=False)
-def get_query_embedding(question: str) -> list[float]:
-    return embed_texts([question])[0]
+def get_question_context(
+    question: str,
+    document_index: DocumentIndex,
+    internet_context_enabled: bool,
+) -> QuestionContext:
+    return build_question_context(
+        question=question,
+        document_index=document_index,
+        internet_context_enabled=internet_context_enabled,
+    )
 
 
 st.set_page_config(
@@ -72,7 +77,7 @@ if uploaded_file is not None:
     st.subheader("Extracted Text Preview")
 
     if extracted_text.strip():
-        chunks = get_text_chunks(extracted_text)
+        document_index = get_document_index(extracted_text)
 
         st.text_area(
             "PDF text",
@@ -83,16 +88,15 @@ if uploaded_file is not None:
         st.info(f"Extracted approximately {len(extracted_text):,} characters.")
 
         st.subheader("Chunk Preview")
-        st.write(f"Created {len(chunks):,} text chunks.")
+        st.write(f"Created {len(document_index.chunks):,} text chunks.")
 
         st.text_area(
             "First chunk",
-            chunks[0],
+            document_index.chunks[0],
             height=250
         )
 
-        with st.spinner("Generating embeddings for chunks..."):
-            embeddings = get_chunk_embeddings(tuple(chunks))
+        embeddings = document_index.embeddings
 
         if embeddings:
             st.subheader("Embedding Summary")
@@ -114,19 +118,11 @@ if uploaded_file is not None:
 
             if question.strip():
                 with st.spinner("Finding relevant PDF sections..."):
-                    query_embedding = get_query_embedding(question.strip())
-                    results = rank_chunks_by_similarity(
-                        query_embedding=query_embedding,
-                        chunk_embeddings=embeddings,
-                        chunks=chunks,
-                        top_k=3,
+                    question_context = get_question_context(
+                        question=question.strip(),
+                        document_index=document_index,
+                        internet_context_enabled=use_google_search,
                     )
-
-                answer_prompt = build_grounded_answer_prompt(
-                    question=question,
-                    retrieved_chunks=results,
-                    internet_context_enabled=use_google_search,
-                )
 
                 st.subheader("Grounded Answer Draft")
                 st.info(
@@ -137,25 +133,44 @@ if uploaded_file is not None:
                 with st.expander("Prompt preview"):
                     st.text_area(
                         "LLM prompt",
-                        answer_prompt,
-                    height=350,
+                        question_context.answer_prompt,
+                        height=350,
                     )
 
-                with st.spinner("Generating PDF-first answer..."):
-                    try:
-                        answer = generate_answer(
-                            prompt=answer_prompt,
-                            use_google_search=use_google_search,
-                        )
-                    except Exception as error:
-                        st.error(str(error))
-                    else:
-                        st.subheader("Answer")
-                        st.write(answer)
+                answer_cache_key = sha256(
+                    f"{use_google_search}\n{question_context.answer_prompt}".encode(
+                        "utf-8"
+                    )
+                ).hexdigest()
+
+                if st.session_state.get("answer_cache_key") != answer_cache_key:
+                    with st.spinner("Generating PDF-first answer..."):
+                        try:
+                            answer = generate_answer(
+                                prompt=question_context.answer_prompt,
+                                use_google_search=use_google_search,
+                            )
+                        except Exception as error:
+                            st.session_state.answer_error = str(error)
+                            st.session_state.answer = None
+                        else:
+                            st.session_state.answer_error = None
+                            st.session_state.answer = answer
+
+                        st.session_state.answer_cache_key = answer_cache_key
+
+                if st.session_state.get("answer_error"):
+                    st.error(st.session_state.answer_error)
+                elif st.session_state.get("answer"):
+                    st.subheader("Answer")
+                    st.write(st.session_state.answer)
 
                 st.write("Most relevant sections:")
 
-                for result_number, (chunk, score) in enumerate(results, start=1):
+                for result_number, (chunk, score) in enumerate(
+                    question_context.retrieved_chunks,
+                    start=1,
+                ):
                     with st.expander(
                         f"Result {result_number} - similarity {score:.3f}",
                         expanded=result_number == 1,
