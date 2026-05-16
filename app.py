@@ -1,9 +1,37 @@
+from io import BytesIO
+
 import streamlit as st
 
+from src.answer_builder import build_grounded_answer_prompt
 from src.chunker import chunk_text
+from src.config import load_environment
 from src.embedding_client import embed_texts
+from src.gemini_client import generate_answer
 from src.pdf_loader import extract_text_from_pdf
 from src.retriever import rank_chunks_by_similarity
+
+
+load_environment()
+
+
+@st.cache_data(show_spinner=False)
+def extract_text_from_pdf_bytes(file_bytes: bytes) -> str:
+    return extract_text_from_pdf(BytesIO(file_bytes))
+
+
+@st.cache_data(show_spinner=False)
+def get_text_chunks(text: str) -> list[str]:
+    return chunk_text(text)
+
+
+@st.cache_data(show_spinner=False)
+def get_chunk_embeddings(chunks: tuple[str, ...]) -> list[list[float]]:
+    return embed_texts(list(chunks))
+
+
+@st.cache_data(show_spinner=False)
+def get_query_embedding(question: str) -> list[float]:
+    return embed_texts([question])[0]
 
 
 st.set_page_config(
@@ -24,16 +52,27 @@ uploaded_file = st.file_uploader(
     type=["pdf"]
 )
 
+use_google_search = st.toggle(
+    "Internet context",
+    value=False,
+    help="Answer from the PDF first, then supplement with Google Search grounding.",
+)
+st.caption(
+    "Enabled: will add web context after the PDF answer."
+    if use_google_search
+    else "Disabled: will answer from the PDF context only."
+)
+
 if uploaded_file is not None:
     st.success(f"Uploaded: {uploaded_file.name}")
 
     with st.spinner("Extracting text from PDF..."):
-        extracted_text = extract_text_from_pdf(uploaded_file)
+        extracted_text = extract_text_from_pdf_bytes(uploaded_file.getvalue())
 
     st.subheader("Extracted Text Preview")
 
     if extracted_text.strip():
-        chunks = chunk_text(extracted_text)
+        chunks = get_text_chunks(extracted_text)
 
         st.text_area(
             "PDF text",
@@ -53,7 +92,7 @@ if uploaded_file is not None:
         )
 
         with st.spinner("Generating embeddings for chunks..."):
-            embeddings = embed_texts(chunks)
+            embeddings = get_chunk_embeddings(tuple(chunks))
 
         if embeddings:
             st.subheader("Embedding Summary")
@@ -75,13 +114,44 @@ if uploaded_file is not None:
 
             if question.strip():
                 with st.spinner("Finding relevant PDF sections..."):
-                    query_embedding = embed_texts([question])[0]
+                    query_embedding = get_query_embedding(question.strip())
                     results = rank_chunks_by_similarity(
                         query_embedding=query_embedding,
                         chunk_embeddings=embeddings,
                         chunks=chunks,
                         top_k=3,
                     )
+
+                answer_prompt = build_grounded_answer_prompt(
+                    question=question,
+                    retrieved_chunks=results,
+                    internet_context_enabled=use_google_search,
+                )
+
+                st.subheader("Grounded Answer Draft")
+                st.info(
+                    "The next step is to send this grounded prompt to a language "
+                    "model. For now, we show the exact context that would be used."
+                )
+
+                with st.expander("Prompt preview"):
+                    st.text_area(
+                        "LLM prompt",
+                        answer_prompt,
+                    height=350,
+                    )
+
+                with st.spinner("Generating PDF-first answer..."):
+                    try:
+                        answer = generate_answer(
+                            prompt=answer_prompt,
+                            use_google_search=use_google_search,
+                        )
+                    except Exception as error:
+                        st.error(str(error))
+                    else:
+                        st.subheader("Answer")
+                        st.write(answer)
 
                 st.write("Most relevant sections:")
 
