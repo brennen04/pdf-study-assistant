@@ -182,6 +182,7 @@ Additional project context:
 
 - `docs/architecture.md`: current architecture, module responsibilities, and data flow
 - `docs/decisions.md`: important decisions and tradeoffs
+- `docs/deployment.md`: Hugging Face Spaces deployment guide and caveats
 - `CODEX.md`: local working agreement for Codex sessions
 
 ## Current Status
