@@ -40,6 +40,18 @@ It handles the user workflow:
 Why: the UI should coordinate the workflow, but it should not contain all business logic. Keeping app orchestration separate from core logic makes the project easier to maintain.
 
 The app caches PDF extraction, chunking, and document embeddings so changing the question does not recompute the whole document pipeline.
+Answer generation runs immediately after a question is submitted, but the app stores the generated answer in Streamlit session state so the same question/context does not repeatedly call the LLM on unrelated reruns.
+
+### `src/rag_pipeline.py`
+
+This module coordinates the core RAG workflow:
+
+- build a searchable document index from PDF text
+- embed a user question
+- retrieve the most relevant PDF chunks
+- build the grounded answer prompt
+
+Why: the Streamlit UI should render controls and display results, while the pipeline module owns the application workflow. This keeps the architecture easier to test and extend.
 
 ### `src/pdf_loader.py`
 
@@ -61,7 +73,7 @@ This module loads a local SentenceTransformer model and converts text into embed
 
 Why: embeddings turn text into vectors that capture semantic meaning. Similar meanings should have similar vectors, which allows the app to search by meaning rather than exact keywords.
 
-The model is cached so it is not reloaded every time embeddings are created.
+The model is cached so it is not reloaded every time embeddings are created. On a fresh clone, SentenceTransformers can download the embedding model on first use. Set `EMBEDDING_MODEL_LOCAL_ONLY=true` only if the model is already cached locally and you want offline-only behavior.
 
 ### `src/retriever.py`
 
@@ -91,18 +103,37 @@ In this project, that means:
 6. Later, send those chunks plus the question to a language model to generate a grounded PDF-first answer.
 7. Optionally add internet context as a separate supplement after the PDF-based answer.
 
-Right now, the app performs steps 1 through 5. The next major step is answer generation.
-It also previews the grounded prompt for step 6 so we can inspect exactly what context a language model would receive.
+The app currently performs this full flow with Gemini as the answer-generation model.
 
-## How To Run
+## Fresh Clone Setup
 
-Create and activate a virtual environment, then install dependencies:
+Create and activate a virtual environment:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+Install dependencies:
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-Run the Streamlit app:
+Create your local environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edit `.env` and set your Gemini API key:
+
+```env
+LLM_API_KEY=your-real-api-key
+EMBEDDING_MODEL_LOCAL_ONLY=false
+```
+
+Run the app:
 
 ```powershell
 streamlit run app.py
@@ -114,27 +145,11 @@ Then open:
 http://localhost:8501
 ```
 
-## Gemini API Key
+First run note: the embedding model may download the first time you upload a PDF. Later runs reuse the local model cache.
+
+## API Key And Local Config
 
 The app can use Gemini to generate a PDF-first answer after retrieving relevant chunks.
-
-Recommended local setup:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Then edit `.env` and replace the placeholder:
-
-```env
-LLM_API_KEY=your-real-api-key
-```
-
-Run the app:
-
-```powershell
-streamlit run app.py
-```
 
 You can also set the key directly in PowerShell:
 
