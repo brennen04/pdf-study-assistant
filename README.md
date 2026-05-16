@@ -35,8 +35,11 @@ It handles the user workflow:
 - create embeddings
 - accept a question
 - display the most relevant PDF sections
+- generate an answer after the question is submitted
 
 Why: the UI should coordinate the workflow, but it should not contain all business logic. Keeping app orchestration separate from core logic makes the project easier to maintain.
+
+The app caches PDF extraction, chunking, and document embeddings so changing the question does not recompute the whole document pipeline.
 
 ### `src/pdf_loader.py`
 
@@ -68,6 +71,12 @@ Why: this is the retrieval step in RAG. Before an AI model can answer from a doc
 
 Because the embeddings are normalized, cosine similarity can be computed efficiently with a dot product.
 
+### `src/answer_builder.py`
+
+This module builds the grounded prompt that will eventually be sent to a language model.
+
+Why: answer generation should use the retrieved PDF context as the primary source. Internet context can be added later, but it should be clearly separated from the PDF-based answer. Keeping prompt construction in its own module makes the handoff from retrieval to generation explicit and easier to inspect.
+
 ## What RAG Means Here
 
 RAG stands for Retrieval-Augmented Generation.
@@ -79,9 +88,11 @@ In this project, that means:
 3. Convert chunks into embeddings.
 4. Convert the user's question into an embedding.
 5. Retrieve the most relevant chunks.
-6. Later, send those chunks plus the question to a language model to generate a grounded answer.
+6. Later, send those chunks plus the question to a language model to generate a grounded PDF-first answer.
+7. Optionally add internet context as a separate supplement after the PDF-based answer.
 
 Right now, the app performs steps 1 through 5. The next major step is answer generation.
+It also previews the grounded prompt for step 6 so we can inspect exactly what context a language model would receive.
 
 ## How To Run
 
@@ -102,6 +113,41 @@ Then open:
 ```text
 http://localhost:8501
 ```
+
+## Gemini API Key
+
+The app can use Gemini to generate a PDF-first answer after retrieving relevant chunks.
+
+Recommended local setup:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then edit `.env` and replace the placeholder:
+
+```env
+LLM_API_KEY=your-real-api-key
+```
+
+Run the app:
+
+```powershell
+streamlit run app.py
+```
+
+You can also set the key directly in PowerShell:
+
+```powershell
+$env:LLM_API_KEY="your-api-key"
+streamlit run app.py
+```
+
+Do not commit API keys to Git. The real `.env` file is ignored by Git, while `.env.example` is safe to commit as a template.
+
+The API key is intentionally not collected in the web UI. Developers should configure it locally before running the app.
+
+The "Internet context" toggle enables Gemini Google Search grounding. The prompt still tells the model to answer from the PDF first, then add internet information separately when useful.
 
 ## Engineering Principles For This Project
 
@@ -124,10 +170,14 @@ Built so far:
 - text chunking
 - local embedding generation
 - semantic retrieval for user questions
+- grounded answer prompt preview
+- Gemini answer generation
+- cached PDF processing and embeddings
 
 Next likely steps:
 
-- add answer generation using the retrieved chunks
+- improve answer/source display
+- extract Gemini citation metadata when internet grounding is enabled
 - show source chunks alongside generated answers
 - improve error handling for missing local embedding models
 - add tests for chunking and retrieval behavior
