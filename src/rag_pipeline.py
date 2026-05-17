@@ -28,11 +28,19 @@ class QuestionContext:
     answer_prompt: str
 
 
-def build_document_index(text: str) -> DocumentIndex:
+def build_document_index(
+    text: str,
+    chunk_size: int = 1000,
+    chunk_overlap: int = 200,
+) -> DocumentIndex:
     """
     Build a searchable document index from extracted PDF text.
     """
-    chunks = chunk_text(text)
+    chunks = chunk_text(
+        text,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+    )
     embeddings = embed_texts(chunks)
 
     return DocumentIndex(chunks=chunks, embeddings=embeddings)
