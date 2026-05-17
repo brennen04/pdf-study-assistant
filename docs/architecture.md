@@ -13,6 +13,128 @@ The core product behavior is:
 7. Generate a PDF-first answer with Gemini.
 8. Optionally add a separate internet supplement with Google Search grounding.
 
+## Abstract Architecture
+
+At a high level, the app has two major workflows:
+
+1. Document ingestion: turn an uploaded PDF into a searchable document index.
+2. Question answering: turn a user question into a PDF-grounded answer.
+
+These workflows are connected by the document index. The index is the prepared
+representation of the uploaded PDF: it contains text chunks plus embeddings for
+those chunks. Once the index exists, the app can answer multiple questions
+without extracting, chunking, and embedding the PDF again.
+
+```text
+                         Document ingestion
+
+user uploads PDF
+      |
+      v
+PDF bytes
+      |
+      v
+text extraction
+      |
+      v
+plain text
+      |
+      v
+chunking
+      |
+      v
+text chunks
+      |
+      v
+embedding
+      |
+      v
+document index
+
+
+                         Question answering
+
+user asks question
+      |
+      v
+question embedding
+      |
+      v
+semantic retrieval against document index
+      |
+      v
+relevant PDF chunks
+      |
+      v
+PDF-first prompt construction
+      |
+      v
+Gemini answer generation
+      |
+      v
+answer + PDF sources
+      |
+      v
+optional separate internet supplement
+```
+
+### Architecture Layers
+
+The system is organized into layers. Each layer has a different reason to
+change, which is why they should not all live in one file.
+
+```text
+User interface layer
+  Streamlit pages, controls, routing, answer display, debug/learning views
+
+Application runtime layer
+  Streamlit session state, cache wrappers, rerun-safe answer generation
+
+RAG workflow layer
+  Build document index, retrieve question context, build grounded prompt
+
+Domain service layer
+  PDF loading, text chunking, embedding client, vector retrieval, prompt builder
+
+Provider/integration layer
+  Gemini API, optional Google Search grounding, local environment loading
+```
+
+The most important boundary is between the UI/runtime layers and the RAG
+workflow layer. Streamlit reruns, widgets, and session state are framework
+concerns. Chunking, retrieval, prompt construction, and answer-generation
+contracts are application concerns. Keeping that boundary clear makes the app
+easier to test and easier to move beyond Streamlit later if needed.
+
+### Data Ownership
+
+The uploaded PDF passes through several representations:
+
+```text
+PDF bytes
+-> extracted text
+-> text chunks
+-> chunk embeddings
+-> DocumentIndex
+-> retrieved chunks for one question
+-> prompt
+-> generated answer
+```
+
+Each representation has a different lifetime:
+
+- PDF bytes: kept while the user is working with the current document.
+- Extracted text: stable for the current PDF and useful for debugging.
+- Text chunks and embeddings: stable for the current PDF and reused across questions.
+- Retrieved chunks: specific to one question.
+- Prompt: specific to one question and internet-context setting.
+- Generated answer: specific to one prompt and internet-context setting.
+
+This is why the app caches document-level work separately from answer
+generation. A new question should not rebuild the document index. A page
+navigation should not restart extraction or embedding. But a new PDF should
+clear the old document and answer state.
+
 ## Module Responsibilities
 
 ### `app.py`
