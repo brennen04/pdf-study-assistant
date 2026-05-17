@@ -21,14 +21,57 @@ Streamlit entry point.
 
 Responsibilities:
 
-- render the UI
 - load local environment variables
-- manage Streamlit widgets
-- cache expensive stable document work
-- store generated answers in session state
-- display extracted text, chunks, prompts, answers, and retrieved sources
+- configure Streamlit page metadata and small app-wide styles
+- provide URL-based navigation between `/study` and `/logic`
 
-`app.py` should stay mostly framework-specific. It should not own the core RAG algorithm.
+`app.py` should stay as the entry point only. Page rendering, session-state
+document lifecycle, cache wrappers, and answer orchestration should live in
+focused Streamlit modules under `src/`.
+
+### `src/streamlit_state.py`
+
+Streamlit session-state boundary.
+
+Responsibilities:
+
+- remember the uploaded PDF bytes, file name, and content hash
+- remember the extracted text and prepared `DocumentIndex` for the current PDF
+- clear document and answer state when the uploaded PDF changes
+- store generated answer text, answer errors, and the current answer cache key
+
+This module is intentionally Streamlit-specific. It keeps raw `st.session_state`
+keys centralized instead of scattering string keys through the page code.
+
+### `src/streamlit_runtime.py`
+
+Streamlit runtime services.
+
+Responsibilities:
+
+- wrap PDF text extraction with `st.cache_data`
+- wrap document indexing with `st.cache_data`
+- load the current PDF into an extracted-text/document-index pair
+- build question context through the core RAG pipeline
+- generate an answer once for a stable prompt/internet-context key
+
+This module coordinates Streamlit caching and rerun behavior, while the actual
+RAG algorithm still lives in `src/rag_pipeline.py`.
+
+### `src/streamlit_pages/`
+
+Streamlit page renderers.
+
+Responsibilities:
+
+- `study.py`: render `/study`, the primary upload/question/answer workflow
+- `logic.py`: render `/logic`, the learning/debug page for extracted text, chunks, embeddings, retrieval results, and prompt inspection
+- `shared.py`: render small shared UI elements such as the page header and current PDF status
+
+The `/study` page is the primary user workflow: upload a PDF, ask a question,
+and read the generated answer. The `/logic` page keeps the learning/debugging
+surfaces separate: extracted text preview, chunk preview, embedding preview,
+retrieved sources, and prompt inspection.
 
 ### `src/rag_pipeline.py`
 
@@ -96,19 +139,23 @@ This module loads `.env` so developers can keep API keys out of source code.
 
 ```text
 uploaded PDF
--> pdf_loader.extract_text_from_pdf
--> rag_pipeline.build_document_index
+-> streamlit_state.remember_uploaded_pdf
+-> streamlit_runtime.load_current_document
+   -> pdf_loader.extract_text_from_pdf
+   -> rag_pipeline.build_document_index
    -> chunker.chunk_text
    -> embedding_client.embed_texts
 -> DocumentIndex(chunks, embeddings)
 
 user question
--> rag_pipeline.build_question_context
+-> streamlit_runtime.get_question_context
+   -> rag_pipeline.build_question_context
    -> embedding_client.embed_texts
    -> retriever.rank_chunks_by_similarity
    -> answer_builder.build_grounded_answer_prompt
--> gemini_client.generate_answer
--> Streamlit displays answer and sources
+-> streamlit_runtime.generate_answer_once
+   -> gemini_client.generate_answer
+-> /study displays answer and sources
 ```
 
 ## Streamlit State And Caching
@@ -121,6 +168,13 @@ Cached stable work:
 - extracted text to `DocumentIndex`
 
 The app should not recompute the whole document pipeline just because the user changes a question or toggles internet context.
+
+The uploaded PDF bytes, file name, extracted text, and prepared document index
+are stored in Streamlit session state for the current PDF hash. This keeps the
+selected document available when the user navigates between `/study` and
+`/logic` without restarting the visible loading flow. The cached extraction and
+indexing functions remain underneath as a second layer of protection against
+repeated expensive work for the same PDF content.
 
 LLM calls are guarded with a stable answer key in `st.session_state`. The app generates immediately after a question is submitted, but it should not repeatedly call Gemini for the same question, retrieved context, and internet toggle.
 
@@ -138,9 +192,17 @@ The interface should feel:
 
 During learning mode, transparent intermediate outputs are useful: extracted text preview, chunk preview, prompt preview, retrieved sources, and answer output.
 
+Those intermediate outputs live on the `/logic` page so the main `/study` page can
+stay focused on the task a learner would perform repeatedly: ask a question and
+read the answer.
+
 ## Future Architecture Direction
 
-The current app is a functional prototype. Future implementation should improve reliability and maintainability before adding too many new product features.
+The current app is a functional production-directed prototype. The prototype
+stage is for learning and validating architecture incrementally, while still
+preserving clean boundaries that can grow into a production-ready application.
+Future implementation should improve reliability and maintainability before
+adding too many new product features.
 
 Near-term architecture priorities:
 

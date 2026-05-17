@@ -38,19 +38,36 @@ The app is intentionally split into small modules instead of placing all logic i
 
 This is the Streamlit application entry point.
 
-It handles the user workflow:
+It handles app setup:
 
-- upload a PDF
-- show extracted text
-- create chunks
-- create embeddings
-- accept a question
-- display the most relevant PDF sections
-- generate an answer after the question is submitted
+- load local environment variables
+- configure Streamlit page metadata
+- register `/study` and `/logic` routes
 
-Why: the UI should coordinate the workflow, but it should not contain all business logic. Keeping app orchestration separate from core logic makes the project easier to maintain.
+Why: the entry point should stay small. Page rendering, session state, cache wrappers, and answer orchestration live in focused modules under `src/`.
+
+### `src/streamlit_state.py`
+
+This module owns Streamlit session-state keys and document/answer lifecycle.
+
+Why: uploaded PDF bytes, extracted text, prepared indexes, and generated answers need to survive reruns and page navigation. Keeping this state boundary in one module avoids scattering raw session keys throughout the UI.
+
+### `src/streamlit_runtime.py`
+
+This module owns Streamlit cache wrappers and rerun-safe runtime orchestration.
+
+Why: `st.cache_data`, PDF loading, document indexing, question context creation, and one-time answer generation are Streamlit runtime concerns, but they should not clutter the entry point or page renderers.
+
+### `src/streamlit_pages/`
+
+This package contains the page renderers:
+
+- `study.py`: the `/study` workflow for uploading a PDF, asking a question, and reading an answer
+- `logic.py`: the `/logic` workflow for inspecting extracted text, chunks, embeddings, retrieved sources, and prompts
+- `shared.py`: small shared UI helpers
 
 The app caches PDF extraction, chunking, and document embeddings so changing the question does not recompute the whole document pipeline.
+The uploaded PDF bytes and prepared document index are stored in Streamlit session state so navigating between `/study` and `/logic` keeps the same document selected without restarting the visible loading flow.
 Answer generation runs immediately after a question is submitted, but the app stores the generated answer in Streamlit session state so the same question/context does not repeatedly call the LLM on unrelated reruns.
 
 ### `src/rag_pipeline.py`
@@ -158,6 +175,11 @@ http://localhost:8501
 
 First run note: the embedding model may download the first time you upload a PDF. Later runs reuse the local model cache.
 
+Use the sidebar or browser URL to switch between:
+
+- `/study`: the main workflow for uploading a PDF, asking a question, and generating an answer
+- `/logic`: the learning/debug workflow for inspecting extracted text, chunks, embeddings, retrieved sections, and the prompt sent to the LLM
+
 Run lightweight verification:
 
 ```powershell
@@ -205,7 +227,9 @@ Additional project context:
 
 ## Current Status
 
-This project is currently a functional early RAG prototype, not a finished production-ready app.
+This project is currently a functional early RAG prototype on the path to a
+production-ready app. The prototype stage is for learning and validating the
+architecture incrementally, not for accepting throwaway structure.
 
 Built so far:
 
@@ -214,7 +238,8 @@ Built so far:
 - text chunking
 - local embedding generation
 - semantic retrieval for user questions
-- grounded answer prompt preview
+- separate `/study` and `/logic` pages
+- grounded answer prompt preview on the RAG logic page
 - Gemini answer generation
 - cached PDF processing and embeddings
 
