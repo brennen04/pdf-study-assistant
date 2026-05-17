@@ -158,6 +158,13 @@ http://localhost:8501
 
 First run note: the embedding model may download the first time you upload a PDF. Later runs reuse the local model cache.
 
+Run lightweight verification:
+
+```powershell
+python -m compileall app.py src tests
+python -m unittest discover -s tests
+```
+
 ## API Key And Local Config
 
 The app can use Gemini to generate a PDF-first answer after retrieving relevant chunks.
@@ -213,7 +220,7 @@ Built so far:
 
 Not fully implemented yet:
 
-- automated tests
+- broad automated test coverage
 - robust error handling for scanned PDFs, invalid API keys, Gemini failures, and embedding model download failures
 - polished answer/source display
 - Gemini citation metadata when internet grounding is enabled
@@ -227,7 +234,7 @@ Not fully implemented yet:
 
 High-priority next steps:
 
-- add tests for pure logic modules: `chunker`, `retriever`, `answer_builder`, and `rag_pipeline`
+- expand tests for edge cases in pure logic modules and pipeline behavior
 - improve error handling and user-facing error messages
 - improve answer/source display so PDF evidence and internet supplement are visually separate
 - extract and display Gemini citation metadata when internet grounding is enabled
