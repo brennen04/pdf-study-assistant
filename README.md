@@ -1,8 +1,5 @@
 ---
 title: PDF Study Assistant
-emoji: 📚
-colorFrom: blue
-colorTo: green
 sdk: docker
 app_port: 8501
 pinned: false
