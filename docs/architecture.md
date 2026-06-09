@@ -1,6 +1,12 @@
 # Architecture
 
-This project is a local PDF Study Assistant built as a learning RAG application.
+This project is a local PDF Study Assistant built as a learning RAG application
+on the path to a production-ready study assistant.
+
+The MVP/prototype stage is how we learn and validate the architecture
+incrementally. It is not the final product target. The production direction is a
+study assistant with memory, traceability, debugging support, evaluation, and
+user history.
 
 The core product behavior is:
 
@@ -106,6 +112,11 @@ concerns. Chunking, retrieval, prompt construction, and answer-generation
 contracts are application concerns. Keeping that boundary clear makes the app
 easier to test and easier to move beyond Streamlit later if needed.
 
+The production roadmap includes persistence later, but architecture should first
+make the application models explicit. Storage should persist real domain
+concepts such as documents, chunks, question runs, retrieved sources, model
+calls, answer results, errors, and evaluations.
+
 ### Data Ownership
 
 The uploaded PDF passes through several representations:
@@ -118,7 +129,8 @@ PDF bytes
 -> DocumentIndex
 -> retrieved chunks for one question
 -> prompt
--> generated answer
+-> model call
+-> answer result
 ```
 
 Each representation has a different lifetime:
@@ -128,12 +140,18 @@ Each representation has a different lifetime:
 - Text chunks and embeddings: stable for the current PDF and reused across questions.
 - Retrieved chunks: specific to one question.
 - Prompt: specific to one question and internet-context setting.
-- Generated answer: specific to one prompt and internet-context setting.
+- Model call: specific to one prompt, provider, model, and settings.
+- Answer result: specific to one model call and should separate PDF answer, internet supplement, citations, and errors.
 
 This is why the app caches document-level work separately from answer
 generation. A new question should not rebuild the document index. A page
 navigation should not restart extraction or embedding. But a new PDF should
 clear the old document and answer state.
+
+The next production-oriented boundary is the answer result. The app should not
+permanently treat Gemini output as one raw string. It should turn model output
+into an explicit application object that can be rendered, tested, monitored, and
+eventually persisted.
 
 ## Module Responsibilities
 
@@ -318,20 +336,10 @@ Those intermediate outputs live on the `/logic` page so the main `/study` page c
 stay focused on the task a learner would perform repeatedly: ask a question and
 read the answer.
 
-## Future Architecture Direction
+## Architecture Priorities
 
-The current app is a functional production-directed prototype. The prototype
-stage is for learning and validating architecture incrementally, while still
-preserving clean boundaries that can grow into a production-ready application.
-Future implementation should improve reliability and maintainability before
-adding too many new product features.
+The next architecture boundary is the answer result. The app should move from a
+raw Gemini string toward explicit answer result and model-call objects.
 
-Near-term architecture priorities:
-
-- add tests around pure logic modules before UI tests
-- improve error boundaries around PDF loading, embedding model loading, and Gemini calls
-- separate rendered PDF-based answer from rendered internet supplement
-- expose source chunks and web citations in a clearer result model
-- keep provider-specific logic inside client modules such as `gemini_client.py`
-
-If document collections or larger PDFs become a focus, introduce persistence for document indexes before adding a vector database. A vector database should solve a real scale or persistence problem, not be added just because the project uses RAG.
+The roadmap in `docs/roadmap.md` owns the full implementation sequence. This
+file owns the system shape and current module boundaries.

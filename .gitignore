@@ -26,6 +26,3 @@ Thumbs.db
 *.log
 *.tmp
 
-CODEX.md
-docs/decisions.md
-docs/deployment.md

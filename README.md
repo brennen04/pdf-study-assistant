@@ -11,129 +11,31 @@ short_description: PDF-first RAG study assistant with optional internet context
 
 # PDF Study Assistant
 
-This project is a learning build for a local PDF study assistant using a Retrieval-Augmented Generation (RAG) architecture.
+PDF Study Assistant is a Streamlit-based Retrieval-Augmented Generation (RAG)
+study tool.
 
-The goal is to understand how modern AI study tools are built step by step, while keeping the code structured like a real software project. Each part of the system has a clear responsibility so the app is easier to test, change, and extend.
+The project is being built incrementally for learning, but the target is a
+production-ready study assistant with memory, traceability, debugging support,
+evaluation, and user history.
 
-## Why We Are Building This
+## What The App Does
 
-Students often have long lecture notes, textbook chapters, research papers, or revision PDFs. Reading through all of that material manually can be slow, especially when trying to answer a specific question.
+Current user flow:
 
-This app is being built to:
+1. Upload a text-based PDF.
+2. Extract readable text.
+3. Split the text into chunks.
+4. Embed the chunks locally.
+5. Retrieve relevant PDF chunks for a question.
+6. Generate a PDF-first answer with Gemini.
+7. Optionally add internet information as a clearly separated supplement.
 
-- upload a PDF
-- extract its text
-- split the text into smaller chunks
-- create semantic embeddings for those chunks
-- retrieve the most relevant chunks for a user question
-- eventually generate answers grounded in the PDF content
+The app has two Streamlit pages:
 
-The learning purpose is just as important as the app itself. As we build, we explain the architecture decisions, tradeoffs, and software engineering practices behind each step.
+- `/study`: upload a PDF, ask a question, and read the generated answer.
+- `/logic`: inspect extracted text, chunks, embeddings, retrieval results, and prompts.
 
-## Current Architecture
-
-The app is intentionally split into small modules instead of placing all logic inside the Streamlit UI.
-
-### `app.py`
-
-This is the Streamlit application entry point.
-
-It handles app setup:
-
-- load local environment variables
-- configure Streamlit page metadata
-- register `/study` and `/logic` routes
-
-Why: the entry point should stay small. Page rendering, session state, cache wrappers, and answer orchestration live in focused modules under `src/`.
-
-### `src/streamlit_state.py`
-
-This module owns Streamlit session-state keys and document/answer lifecycle.
-
-Why: uploaded PDF bytes, extracted text, prepared indexes, and generated answers need to survive reruns and page navigation. Keeping this state boundary in one module avoids scattering raw session keys throughout the UI.
-
-### `src/streamlit_runtime.py`
-
-This module owns Streamlit cache wrappers and rerun-safe runtime orchestration.
-
-Why: `st.cache_data`, PDF loading, document indexing, question context creation, and one-time answer generation are Streamlit runtime concerns, but they should not clutter the entry point or page renderers.
-
-### `src/streamlit_pages/`
-
-This package contains the page renderers:
-
-- `study.py`: the `/study` workflow for uploading a PDF, asking a question, and reading an answer
-- `logic.py`: the `/logic` workflow for inspecting extracted text, chunks, embeddings, retrieved sources, and prompts
-- `shared.py`: small shared UI helpers
-
-The app caches PDF extraction, chunking, and document embeddings so changing the question does not recompute the whole document pipeline.
-The uploaded PDF bytes and prepared document index are stored in Streamlit session state so navigating between `/study` and `/logic` keeps the same document selected without restarting the visible loading flow.
-Answer generation runs immediately after a question is submitted, but the app stores the generated answer in Streamlit session state so the same question/context does not repeatedly call the LLM on unrelated reruns.
-
-### `src/rag_pipeline.py`
-
-This module coordinates the core RAG workflow:
-
-- build a searchable document index from PDF text
-- embed a user question
-- retrieve the most relevant PDF chunks
-- build the grounded answer prompt
-
-Why: the Streamlit UI should render controls and display results, while the pipeline module owns the application workflow. This keeps the architecture easier to test and extend.
-
-### `src/pdf_loader.py`
-
-This module extracts readable text from a PDF.
-
-Why: PDF parsing is its own responsibility. If we later support OCR for scanned PDFs or better page metadata, we can improve this file without rewriting the app.
-
-### `src/chunker.py`
-
-This module splits extracted text into overlapping chunks.
-
-Why: embedding an entire PDF at once is usually too broad and too large. Smaller chunks make retrieval more accurate because the app can find the specific section related to a question.
-
-The overlap helps preserve context across chunk boundaries.
-
-### `src/embedding_client.py`
-
-This module loads a local SentenceTransformer model and converts text into embeddings.
-
-Why: embeddings turn text into vectors that capture semantic meaning. Similar meanings should have similar vectors, which allows the app to search by meaning rather than exact keywords.
-
-The model is cached so it is not reloaded every time embeddings are created. On a fresh clone, SentenceTransformers can download the embedding model on first use. Set `EMBEDDING_MODEL_LOCAL_ONLY=true` only if the model is already cached locally and you want offline-only behavior.
-
-### `src/retriever.py`
-
-This module ranks PDF chunks by similarity to the user's question.
-
-Why: this is the retrieval step in RAG. Before an AI model can answer from a document, the system first needs to find the most relevant pieces of that document.
-
-Because the embeddings are normalized, cosine similarity can be computed efficiently with a dot product.
-
-### `src/answer_builder.py`
-
-This module builds the grounded prompt that will eventually be sent to a language model.
-
-Why: answer generation should use the retrieved PDF context as the primary source. Internet context can be added later, but it should be clearly separated from the PDF-based answer. Keeping prompt construction in its own module makes the handoff from retrieval to generation explicit and easier to inspect.
-
-## What RAG Means Here
-
-RAG stands for Retrieval-Augmented Generation.
-
-In this project, that means:
-
-1. Load the document.
-2. Break it into searchable chunks.
-3. Convert chunks into embeddings.
-4. Convert the user's question into an embedding.
-5. Retrieve the most relevant chunks.
-6. Later, send those chunks plus the question to a language model to generate a grounded PDF-first answer.
-7. Optionally add internet context as a separate supplement after the PDF-based answer.
-
-The app currently performs this full flow with Gemini as the answer-generation model.
-
-## Fresh Clone Setup
+## Quick Start
 
 Create and activate a virtual environment:
 
@@ -148,13 +50,13 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Create your local environment file:
+Create local environment config:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Edit `.env` and set your Gemini API key:
+Set your Gemini API key in `.env`:
 
 ```env
 LLM_API_KEY=your-real-api-key
@@ -167,113 +69,71 @@ Run the app:
 streamlit run app.py
 ```
 
-Then open:
+Open:
 
 ```text
-http://localhost:8501
+http://localhost:8501/study
 ```
 
-First run note: the embedding model may download the first time you upload a PDF. Later runs reuse the local model cache.
+First run note: the local embedding model may download the first time you
+process a PDF. Later runs reuse the local model cache.
 
-Use the sidebar or browser URL to switch between:
+## Configuration
 
-- `/study`: the main workflow for uploading a PDF, asking a question, and generating an answer
-- `/logic`: the learning/debug workflow for inspecting extracted text, chunks, embeddings, retrieved sections, and the prompt sent to the LLM
+Required environment variables:
 
-Run lightweight verification:
+```env
+LLM_API_KEY=your-llm-api-key-here
+EMBEDDING_MODEL_LOCAL_ONLY=false
+```
+
+Do not commit real API keys. `.env` is local-only, and `.env.example` is the
+safe public template.
+
+The app intentionally does not collect API keys in the web UI. Provider secrets
+belong in local environment variables or deployment secrets.
+
+## Verification
+
+Run lightweight checks:
 
 ```powershell
 python -m compileall app.py src tests
 python -m unittest discover -s tests
 ```
 
-## API Key And Local Config
+## Project Documentation
 
-The app can use Gemini to generate a PDF-first answer after retrieving relevant chunks.
+Each document has a distinct responsibility:
 
-You can also set the key directly in PowerShell:
-
-```powershell
-$env:LLM_API_KEY="your-api-key"
-streamlit run app.py
-```
-
-Do not commit API keys to Git. The real `.env` file is ignored by Git, while `.env.example` is safe to commit as a template.
-
-The API key is intentionally not collected in the web UI. Developers should configure it locally before running the app.
-
-The "Internet context" toggle enables Gemini Google Search grounding. The prompt still tells the model to answer from the PDF first, then add internet information separately when useful.
-
-## Engineering Principles For This Project
-
-As this project grows, we are following these practices:
-
-- Keep modules focused on one responsibility.
-- Prefer clear names over clever abstractions.
-- Explain why each major change exists.
-- Keep UI code separate from reusable application logic.
-- Add abstractions only when they reduce real complexity.
-- Verify changes with lightweight checks before moving on.
-- Build in small steps so each layer is understandable.
-
-## Project Docs
-
-Additional project context:
-
-- `docs/architecture.md`: current architecture, module responsibilities, and data flow
-- `docs/decisions.md`: important decisions and tradeoffs
-- `docs/deployment.md`: Hugging Face Spaces deployment guide and caveats
-- `CODEX.md`: local working agreement for Codex sessions
+- `docs/architecture.md`: abstract architecture, data flow, layers, and current module boundaries.
+- `docs/roadmap.md`: combined production-readiness and AI Engineer skill-alignment roadmap.
+- `docs/decisions.md`: durable engineering decisions and tradeoffs.
+- `docs/deployment.md`: Hugging Face Spaces deployment instructions.
+- `AGENTS.md`: working instructions for Codex and other coding agents.
 
 ## Current Status
 
-This project is currently a functional early RAG prototype on the path to a
-production-ready app. The prototype stage is for learning and validating the
-architecture incrementally, not for accepting throwaway structure.
+Implemented:
 
-Built so far:
-
-- PDF upload
-- PDF text extraction
-- text chunking
+- PDF upload and text extraction
+- chunking
 - local embedding generation
-- semantic retrieval for user questions
-- separate `/study` and `/logic` pages
-- grounded answer prompt preview on the RAG logic page
+- in-memory document index
+- semantic retrieval
+- PDF-first prompt construction
 - Gemini answer generation
-- cached PDF processing and embeddings
+- optional Google Search grounding
+- `/study` and `/logic` pages
+- Streamlit state/runtime/page separation
+- Hugging Face Spaces Docker deployment setup
 
-Not fully implemented yet:
+Next production-oriented milestone:
 
-- broad automated test coverage
-- robust error handling for scanned PDFs, invalid API keys, Gemini failures, and embedding model download failures
-- polished answer/source display
-- Gemini citation metadata when internet grounding is enabled
-- persisted document embeddings
-- deployment instructions
-- OCR support for image-based PDFs
-- clean separation of PDF answer and internet supplement in the rendered UI
-- end-to-end fresh-clone verification on a clean machine
+```text
+Introduce explicit answer result and model-call objects.
+```
 
-## Future Implementation Roadmap
-
-High-priority next steps:
-
-- expand tests for edge cases in pure logic modules and pipeline behavior
-- improve error handling and user-facing error messages
-- improve answer/source display so PDF evidence and internet supplement are visually separate
-- extract and display Gemini citation metadata when internet grounding is enabled
-
-Medium-priority improvements:
-
-- persist document embeddings so users do not need to recompute them every session
-- add OCR support for scanned or image-based PDFs
-- add deployment instructions
-- polish the UI while keeping the learning/debugging views available
-
-Later improvements:
-
-- support multiple LLM providers
-- support multiple PDFs or document collections
-- add evaluation examples to test answer quality
-- add a proper vector database if in-memory retrieval becomes limiting
+That milestone is described in `docs/roadmap.md`. It should happen before
+database work because persistence should follow stable application models, not
+define them prematurely.
