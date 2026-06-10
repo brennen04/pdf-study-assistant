@@ -59,6 +59,11 @@ The Dockerfile:
 
 Hugging Face Spaces will build this image and run the Streamlit app.
 
+The Docker command disables Streamlit XSRF protection because Hugging Face
+Spaces serves Streamlit through its own proxy. With the default Streamlit XSRF
+setting, file uploads can fail in the deployed Space with a browser-side `403`
+error even though local uploads work.
+
 ## Create The Hugging Face Space
 
 1. Go to Hugging Face Spaces.
