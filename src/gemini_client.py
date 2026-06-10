@@ -53,4 +53,9 @@ def generate_answer(
         config=config,
     )
 
-    return response.text or ""
+    answer_text = response.text or ""
+
+    if not answer_text.strip():
+        raise ValueError("Gemini returned an empty response.")
+
+    return answer_text

@@ -107,5 +107,4 @@ def generate_answer_once(
             remember_answer_error(str(error))
         else:
             remember_answer(answer)
-
-        remember_answer_cache_key(answer_cache_key)
+            remember_answer_cache_key(answer_cache_key)
