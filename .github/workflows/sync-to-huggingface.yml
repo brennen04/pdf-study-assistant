@@ -7,20 +7,14 @@ on:
 
 jobs:
   sync:
-    # TODO: Add a GitHub Actions repository variable named HF_SPACE_ID.
-    # Example value: your-huggingface-username/your-space-name
-    #
-    # TODO: Add a GitHub Actions repository secret named HF_TOKEN with
-    # Hugging Face write access.
-    if: ${{ vars.HF_SPACE_ID != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: ${{ vars.HF_SPACE_ID }}
+          huggingface_repo_id: draxnebula/pdf-study-assistant
           repo_type: space
           space_sdk: docker
           hf_token: ${{ secrets.HF_TOKEN }}
