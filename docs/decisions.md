@@ -51,9 +51,11 @@ Tradeoff:
 Mitigation:
 
 - use semantic top-k retrieval for factual lookup questions
-- introduce task-intent routing for study transformation requests
-- use broader PDF context, section-aware context, or future multi-pass
-  summarization for whole-document study tasks
+- use deterministic task-intent routing for study transformation requests
+- use broad document context for study transformations as the first simple
+  strategy
+- improve broad context later with section-aware context or future multi-pass
+  summarization for long documents
 
 ## Use `src/rag_pipeline.py`
 

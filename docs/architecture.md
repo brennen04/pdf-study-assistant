@@ -41,11 +41,11 @@ The `DocumentIndex` is stable for the current uploaded PDF and can be reused
 across questions. A question, retrieved sources, prompt, model call, and answer
 result are specific to one answer attempt.
 
-Future question answering should route by task intent:
+Question answering routes by task intent:
 
 ```text
 factual lookup -> semantic retrieval top-k -> answer from retrieved chunks
-study transformation -> broader PDF context strategy -> synthesize from PDF
+study transformation -> broad document context -> synthesize from PDF
 ```
 
 This keeps the product PDF-grounded while allowing different retrieval strategies
@@ -80,7 +80,8 @@ workflow as much as practical.
 - `src/streamlit_pages/`: `/study`, `/logic`, and shared Streamlit UI.
 - `src/streamlit_state.py`: uploaded PDF state, loaded document state, latest `AnswerResult`, answer cache key.
 - `src/streamlit_runtime.py`: Streamlit cache wrappers and answer-generation orchestration.
-- `src/rag_pipeline.py`: build `DocumentIndex`, build `QuestionContext`, retrieve chunks, build prompts.
+- `src/rag_pipeline.py`: build `DocumentIndex`, classify task intent, build `QuestionContext`, retrieve/select PDF context, build prompts.
+- `src/task_intent.py`: deterministic task-intent classification for lookup versus study transformation requests.
 - `src/answer_result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `AnswerError`.
 - `src/answer_builder.py`: PDF-grounded prompt construction.
 - `src/pdf_loader.py`, `src/chunker.py`, `src/embedding_client.py`, `src/retriever.py`: focused RAG services.

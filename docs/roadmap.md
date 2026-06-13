@@ -24,6 +24,8 @@ Core RAG baseline is mostly complete:
 - in-memory `DocumentIndex`
 - semantic retrieval
 - PDF-grounded prompt construction
+- deterministic task-intent routing for lookup versus study transformation
+  requests
 - Gemini answer generation
 - optional Google Search grounding
 - `/study` and `/logic` pages
@@ -72,8 +74,8 @@ Remaining:
 
 - improve expected error classification beyond exception class names
 - validate parsed PDF source numbers against retrieved sources
-- distinguish factual lookup tasks from study transformation tasks
-- choose retrieval/context strategy based on task intent
+- improve the study transformation context strategy beyond first chunks, likely
+  with section-aware context or a future multi-pass summary flow
 - decide how strict web citation extraction should be with Google Search
   grounding metadata
 
@@ -155,12 +157,14 @@ internet-supplemented only when requested, and source boundaries always visible.
 Use different PDF-grounded strategies for different study tasks:
 
 - factual lookup: semantic retrieval top-k
-- summaries, notes, outlines, flashcards, explanations, and study guides:
-  broader PDF context, section-aware context, or a future multi-pass summary
-  flow
+- summaries, notes, outlines, flashcards, explanations, and study guides: broad
+  document context
 
 This should fix cases where the app says the PDF does not contain a summary even
 though the user is asking the assistant to create one from the PDF.
+
+Future improvements should make the broad context strategy section-aware and add
+a multi-pass summary flow for long documents.
 
 ## Later Backlog
 
@@ -179,6 +183,5 @@ Keep these as future options until the product needs them:
 
 Continue the explicit answer result model and task routing by tightening
 validation and expected error boundaries. The next useful slice is to classify
-common failures with stable application error codes, validate parsed source
-references against retrieved PDF sources, and add a small task-intent classifier
-for lookup versus study transformation requests.
+common failures with stable application error codes and validate parsed source
+references against retrieved PDF sources.

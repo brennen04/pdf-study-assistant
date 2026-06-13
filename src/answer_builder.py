@@ -1,8 +1,12 @@
+from src.task_intent import TaskIntent
+
+
 def build_grounded_answer_prompt(
     question: str,
     retrieved_chunks: list[tuple[str, float]],
     internet_context_enabled: bool = False,
     web_context: list[str] | None = None,
+    task_intent: TaskIntent = TaskIntent.FACTUAL_LOOKUP,
 ) -> str:
     """
     Build the prompt that will be sent to a language model.
@@ -86,6 +90,9 @@ Rules:
 
 Question:
 {cleaned_question}
+
+Task intent:
+{task_intent.value}
 
 PDF context:
 {context}

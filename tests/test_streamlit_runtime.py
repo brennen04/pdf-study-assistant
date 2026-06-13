@@ -4,12 +4,15 @@ from unittest.mock import patch
 
 from src.rag_pipeline import QuestionContext
 from src.streamlit_runtime import generate_answer_once
+from src.task_intent import TaskIntent
 
 
 class GenerateAnswerOnceTests(unittest.TestCase):
     def test_does_not_cache_failed_answer_generation(self):
         question_context = QuestionContext(
             question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
             query_embedding=[1.0],
             retrieved_chunks=[("PDF context", 0.9)],
             answer_prompt="Answer from this PDF context.",
@@ -39,6 +42,8 @@ class GenerateAnswerOnceTests(unittest.TestCase):
     def test_stores_successful_answer_result_and_cache_key(self):
         question_context = QuestionContext(
             question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
             query_embedding=[1.0],
             retrieved_chunks=[("PDF context", 0.9)],
             answer_prompt="Answer from this PDF context.",
@@ -78,6 +83,8 @@ class GenerateAnswerOnceTests(unittest.TestCase):
     def test_does_not_cache_unparseable_model_output(self):
         question_context = QuestionContext(
             question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
             query_embedding=[1.0],
             retrieved_chunks=[("PDF context", 0.9)],
             answer_prompt="Answer from this PDF context.",
@@ -106,6 +113,8 @@ class GenerateAnswerOnceTests(unittest.TestCase):
     def test_does_not_cache_missing_internet_supplement_when_search_enabled(self):
         question_context = QuestionContext(
             question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
             query_embedding=[1.0],
             retrieved_chunks=[("PDF context", 0.9)],
             answer_prompt="Answer from this PDF context.",
@@ -136,7 +145,6 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertIn("internet_supplement", answer_result.error.message)
         self.assertTrue(answer_result.model_call.use_google_search)
         remember_key.assert_not_called()
-
 
 if __name__ == "__main__":
     unittest.main()

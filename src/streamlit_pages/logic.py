@@ -76,7 +76,10 @@ def render_logic_page() -> None:
         internet_context_enabled=use_google_search,
     )
 
-    st.write("Most relevant sections:")
+    st.write(f"Task intent: {question_context.task_intent.value}")
+    st.write(f"Context strategy: {question_context.context_strategy}")
+
+    st.write("PDF sections used:")
     for result_number, (chunk, score) in enumerate(
         question_context.retrieved_chunks,
         start=1,
