@@ -84,6 +84,8 @@ workflow as much as practical.
 - `src/task_intent.py`: deterministic task-intent classification for lookup versus study transformation requests.
 - `src/answer_result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `AnswerError`.
 - `src/answer_builder.py`: PDF-grounded prompt construction.
+- `src/answer_parser.py`: parse structured model output into answer fields.
+- `src/answer_validation.py`: validate parsed answer fields against trusted app state, such as retrieved PDF source numbers.
 - `src/pdf_loader.py`, `src/chunker.py`, `src/embedding_client.py`, `src/retriever.py`: focused RAG services.
 - `src/gemini_client.py`: Gemini integration and optional Google Search grounding.
 - `src/config.py`: local `.env` loading.

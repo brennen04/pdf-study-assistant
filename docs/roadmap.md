@@ -67,13 +67,14 @@ Completed first slice:
   numbers, web citations, and disagreement notes
 - `/study` renders from the structured result
 - `/logic` can inspect model-call metadata, parsed fields, and raw output
+- parsed PDF source numbers are validated against retrieved PDF sources before
+  an answer is treated as successful
 - tests cover result construction, answer parsing, malformed model output, and
   basic provider failure behavior
 
 Remaining:
 
 - improve expected error classification beyond exception class names
-- validate parsed PDF source numbers against retrieved sources
 - improve the study transformation context strategy beyond first chunks, likely
   with section-aware context or a future multi-pass summary flow
 - decide how strict web citation extraction should be with Google Search
@@ -183,5 +184,4 @@ Keep these as future options until the product needs them:
 
 Continue the explicit answer result model and task routing by tightening
 validation and expected error boundaries. The next useful slice is to classify
-common failures with stable application error codes and validate parsed source
-references against retrieved PDF sources.
+common failures with stable application error codes.

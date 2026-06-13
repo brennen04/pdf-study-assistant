@@ -146,5 +146,41 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertTrue(answer_result.model_call.use_google_search)
         remember_key.assert_not_called()
 
+    def test_does_not_cache_invalid_pdf_source_reference(self):
+        question_context = QuestionContext(
+            question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
+            query_embedding=[1.0],
+            retrieved_chunks=[("PDF context", 0.9)],
+            answer_prompt="Answer from this PDF context.",
+        )
+
+        with (
+            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch(
+                "src.streamlit_runtime.generate_answer",
+                return_value=(
+                    '{"pdf_answer": "The PDF says this.", '
+                    '"pdf_source_numbers": [2], '
+                    '"internet_supplement": null, '
+                    '"web_citations": [], '
+                    '"disagreement_note": null}'
+                ),
+            ),
+            patch(
+                "src.streamlit_runtime.remember_answer_result"
+            ) as remember_result,
+            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+        ):
+            generate_answer_once(question_context, use_google_search=False)
+
+        answer_result = remember_result.call_args.args[0]
+        self.assertEqual(answer_result.error.code, "invalid_pdf_source_reference")
+        self.assertIn("[2]", answer_result.error.message)
+        self.assertEqual(answer_result.sources[0].source_number, 1)
+        remember_key.assert_not_called()
+
 if __name__ == "__main__":
     unittest.main()

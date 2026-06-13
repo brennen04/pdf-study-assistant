@@ -158,6 +158,8 @@ Mitigation:
 
 - parse model output into explicit PDF answer, internet supplement, source,
   citation, and disagreement fields
+- validate parsed PDF source numbers against retrieved PDF sources before
+  storing an answer as successful
 - keep raw output on `ModelCall`
 - represent malformed model output as an application error and avoid caching it
   as a successful answer

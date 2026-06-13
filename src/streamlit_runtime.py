@@ -6,6 +6,7 @@ import streamlit as st
 
 from src.answer_parser import AnswerParseError, parse_answer_output
 from src.answer_result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
+from src.answer_validation import AnswerValidationError, validate_pdf_source_numbers
 from src.gemini_client import DEFAULT_GEMINI_MODEL, generate_answer
 from src.pdf_loader import extract_text_from_pdf
 from src.rag_pipeline import (
@@ -147,6 +148,11 @@ def generate_answer_once(
                     answer,
                     internet_context_enabled=use_google_search,
                 )
+                sources = build_retrieved_sources(question_context.retrieved_chunks)
+                validate_pdf_source_numbers(
+                    parsed_answer=parsed_answer,
+                    sources=sources,
+                )
             except AnswerParseError as error:
                 remember_answer_result(
                     AnswerResult(
@@ -164,15 +170,30 @@ def generate_answer_once(
                         ),
                     )
                 )
+            except AnswerValidationError as error:
+                remember_answer_result(
+                    AnswerResult(
+                        question=question_context.question,
+                        pdf_answer=None,
+                        internet_supplement=None,
+                        sources=build_retrieved_sources(
+                            question_context.retrieved_chunks
+                        ),
+                        model_call=model_call,
+                        error=AnswerError(
+                            code="invalid_pdf_source_reference",
+                            message=str(error),
+                            details=answer,
+                        ),
+                    )
+                )
             else:
                 remember_answer_result(
                     AnswerResult(
                         question=question_context.question,
                         pdf_answer=parsed_answer.pdf_answer,
                         internet_supplement=parsed_answer.internet_supplement,
-                        sources=build_retrieved_sources(
-                            question_context.retrieved_chunks
-                        ),
+                        sources=sources,
                         model_call=model_call,
                         pdf_source_numbers=parsed_answer.pdf_source_numbers,
                         web_citations=parsed_answer.web_citations,
