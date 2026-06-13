@@ -2,7 +2,7 @@ import unittest
 from types import ModuleType, SimpleNamespace
 from unittest.mock import patch
 
-from src.gemini_client import generate_answer
+from src.providers.gemini_client import generate_answer
 
 
 class GenerateAnswerTests(unittest.TestCase):

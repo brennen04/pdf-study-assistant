@@ -1,6 +1,6 @@
 import unittest
 
-from src.task_intent import TaskIntent, classify_task_intent
+from src.rag.task_intent import TaskIntent, classify_task_intent
 
 
 class TaskIntentTests(unittest.TestCase):

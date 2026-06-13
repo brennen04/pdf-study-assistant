@@ -3,8 +3,8 @@ from hashlib import sha256
 
 import streamlit as st
 
-from src.answer_result import AnswerResult
-from src.rag_pipeline import DocumentIndex
+from src.answer.result import AnswerResult
+from src.rag.pipeline import DocumentIndex
 
 
 PDF_FILE_NAME_KEY = "pdf_file_name"

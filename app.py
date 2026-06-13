@@ -1,8 +1,8 @@
 import streamlit as st
 
-from src.config import load_environment
-from src.streamlit_pages.logic import render_logic_page
-from src.streamlit_pages.study import render_study_page
+from src.providers.config import load_environment
+from src.streamlit_app.pages.logic import render_logic_page
+from src.streamlit_app.pages.study import render_study_page
 
 
 def configure_app() -> None:

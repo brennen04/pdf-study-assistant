@@ -1,6 +1,6 @@
 import unittest
 
-from src.answer_result import build_retrieved_sources
+from src.answer.result import build_retrieved_sources
 
 
 class AnswerResultTests(unittest.TestCase):

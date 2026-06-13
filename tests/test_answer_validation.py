@@ -1,8 +1,8 @@
 import unittest
 
-from src.answer_parser import ParsedAnswer
-from src.answer_result import RetrievedSource
-from src.answer_validation import AnswerValidationError, validate_pdf_source_numbers
+from src.answer.parser import ParsedAnswer
+from src.answer.result import RetrievedSource
+from src.answer.validation import AnswerValidationError, validate_pdf_source_numbers
 
 
 class AnswerValidationTests(unittest.TestCase):

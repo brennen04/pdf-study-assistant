@@ -1,6 +1,6 @@
 import unittest
 
-from src.web_citations import format_web_citation
+from src.answer.web_citations import format_web_citation
 
 
 class WebCitationTests(unittest.TestCase):

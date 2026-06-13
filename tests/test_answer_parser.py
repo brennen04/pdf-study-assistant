@@ -1,6 +1,6 @@
 import unittest
 
-from src.answer_parser import AnswerParseError, parse_answer_output
+from src.answer.parser import AnswerParseError, parse_answer_output
 
 
 class AnswerParserTests(unittest.TestCase):

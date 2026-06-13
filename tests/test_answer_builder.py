@@ -1,7 +1,7 @@
 import unittest
 
-from src.answer_builder import build_grounded_answer_prompt
-from src.task_intent import TaskIntent
+from src.answer.builder import build_grounded_answer_prompt
+from src.rag.task_intent import TaskIntent
 
 
 class BuildGroundedAnswerPromptTests(unittest.TestCase):

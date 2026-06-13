@@ -1,6 +1,6 @@
 import unittest
 
-from src.retriever import rank_chunks_by_similarity
+from src.rag.retriever import rank_chunks_by_similarity
 
 
 class RankChunksBySimilarityTests(unittest.TestCase):

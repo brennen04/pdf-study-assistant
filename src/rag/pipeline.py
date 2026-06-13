@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from src.answer_builder import build_grounded_answer_prompt
-from src.chunker import chunk_text
-from src.embedding_client import embed_texts
-from src.retriever import rank_chunks_by_similarity
-from src.task_intent import TaskIntent, classify_task_intent
+from src.answer.builder import build_grounded_answer_prompt
+from src.providers.embedding_client import embed_texts
+from src.rag.chunker import chunk_text
+from src.rag.retriever import rank_chunks_by_similarity
+from src.rag.task_intent import TaskIntent, classify_task_intent
 
 
 @dataclass(frozen=True)

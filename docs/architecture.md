@@ -77,19 +77,24 @@ workflow as much as practical.
 ## Module Ownership
 
 - `app.py`: entry point, environment loading, page setup, routing.
-- `src/streamlit_pages/`: `/study`, `/logic`, and shared Streamlit UI.
-- `src/streamlit_state.py`: uploaded PDF state, loaded document state, latest `AnswerResult`, answer cache key.
-- `src/streamlit_runtime.py`: Streamlit cache wrappers and answer-generation orchestration.
-- `src/rag_pipeline.py`: build `DocumentIndex`, classify task intent, build `QuestionContext`, retrieve/select PDF context, build prompts.
-- `src/task_intent.py`: deterministic task-intent classification for lookup versus study transformation requests.
-- `src/answer_result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `AnswerError`.
-- `src/answer_builder.py`: PDF-grounded prompt construction.
-- `src/answer_parser.py`: parse structured model output into answer fields.
-- `src/answer_validation.py`: validate parsed answer fields against trusted app state, such as retrieved PDF source numbers.
-- `src/web_citations.py`: format web citations for display, including readable labels for Google grounding redirect URLs.
-- `src/pdf_loader.py`, `src/chunker.py`, `src/embedding_client.py`, `src/retriever.py`: focused RAG services.
-- `src/gemini_client.py`: Gemini integration and optional Google Search grounding.
-- `src/config.py`: local `.env` loading.
+- `src/streamlit_app/`: Streamlit-specific runtime, state, and page modules.
+- `src/streamlit_app/pages/`: `/study`, `/logic`, and shared Streamlit UI.
+- `src/streamlit_app/state.py`: uploaded PDF state, loaded document state, latest `AnswerResult`, answer cache key.
+- `src/streamlit_app/runtime.py`: Streamlit cache wrappers and answer-generation orchestration.
+- `src/rag/`: reusable PDF-grounded workflow and retrieval services.
+- `src/rag/pipeline.py`: build `DocumentIndex`, classify task intent, build `QuestionContext`, retrieve/select PDF context, build prompts.
+- `src/rag/task_intent.py`: deterministic task-intent classification for lookup versus study transformation requests.
+- `src/rag/pdf_loader.py`, `src/rag/chunker.py`, `src/rag/retriever.py`: focused RAG services.
+- `src/answer/`: answer contract, prompt construction, parsing, validation, and citation display helpers.
+- `src/answer/result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `AnswerError`.
+- `src/answer/builder.py`: PDF-grounded prompt construction.
+- `src/answer/parser.py`: parse structured model output into answer fields.
+- `src/answer/validation.py`: validate parsed answer fields against trusted app state, such as retrieved PDF source numbers.
+- `src/answer/web_citations.py`: format web citations for display, including readable labels for Google grounding redirect URLs.
+- `src/providers/`: external provider integrations and provider-adjacent configuration.
+- `src/providers/gemini_client.py`: Gemini integration and optional Google Search grounding.
+- `src/providers/embedding_client.py`: local embedding model integration.
+- `src/providers/config.py`: local `.env` loading.
 
 ## State And Caching
 

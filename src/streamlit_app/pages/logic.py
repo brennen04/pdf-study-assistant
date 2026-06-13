@@ -1,9 +1,9 @@
 import streamlit as st
 
-from src.streamlit_pages.shared import render_current_pdf_status, render_page_header
-from src.streamlit_runtime import get_question_context, load_current_document
-from src.streamlit_state import get_answer_result, get_current_pdf
-from src.web_citations import format_web_citation
+from src.answer.web_citations import format_web_citation
+from src.streamlit_app.pages.shared import render_current_pdf_status, render_page_header
+from src.streamlit_app.runtime import get_question_context, load_current_document
+from src.streamlit_app.state import get_answer_result, get_current_pdf
 
 
 def render_logic_page() -> None:

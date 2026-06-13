@@ -1,5 +1,5 @@
-from src.answer_parser import ParsedAnswer
-from src.answer_result import RetrievedSource
+from src.answer.parser import ParsedAnswer
+from src.answer.result import RetrievedSource
 
 
 class AnswerValidationError(ValueError):

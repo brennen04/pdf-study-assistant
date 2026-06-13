@@ -1,4 +1,4 @@
-from src.task_intent import TaskIntent
+from src.rag.task_intent import TaskIntent
 
 
 def build_grounded_answer_prompt(

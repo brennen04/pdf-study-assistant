@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.streamlit_state import get_current_pdf, remember_uploaded_pdf
+from src.streamlit_app.state import get_current_pdf, remember_uploaded_pdf
 
 
 def render_page_header(title: str, description: str) -> None:

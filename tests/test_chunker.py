@@ -1,6 +1,6 @@
 import unittest
 
-from src.chunker import chunk_text
+from src.rag.chunker import chunk_text
 
 
 class ChunkTextTests(unittest.TestCase):

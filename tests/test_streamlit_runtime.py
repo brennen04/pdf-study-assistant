@@ -2,9 +2,9 @@ import unittest
 from contextlib import nullcontext
 from unittest.mock import patch
 
-from src.rag_pipeline import QuestionContext
-from src.streamlit_runtime import generate_answer_once
-from src.task_intent import TaskIntent
+from src.rag.pipeline import QuestionContext
+from src.rag.task_intent import TaskIntent
+from src.streamlit_app.runtime import generate_answer_once
 
 
 class GenerateAnswerOnceTests(unittest.TestCase):
@@ -19,16 +19,16 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         )
 
         with (
-            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
-                "src.streamlit_runtime.generate_answer",
+                "src.streamlit_app.runtime.generate_answer",
                 side_effect=RuntimeError("provider unavailable"),
             ),
             patch(
-                "src.streamlit_runtime.remember_answer_result"
+                "src.streamlit_app.runtime.remember_answer_result"
             ) as remember_result,
-            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
-            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
         ):
             generate_answer_once(question_context, use_google_search=False)
 
@@ -50,9 +50,9 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         )
 
         with (
-            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
-                "src.streamlit_runtime.generate_answer",
+                "src.streamlit_app.runtime.generate_answer",
                 return_value=(
                     '{"pdf_answer": "The PDF says this.", '
                     '"pdf_source_numbers": [1], '
@@ -62,10 +62,10 @@ class GenerateAnswerOnceTests(unittest.TestCase):
                 ),
             ),
             patch(
-                "src.streamlit_runtime.remember_answer_result"
+                "src.streamlit_app.runtime.remember_answer_result"
             ) as remember_result,
-            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
-            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
         ):
             generate_answer_once(question_context, use_google_search=True)
 
@@ -91,16 +91,16 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         )
 
         with (
-            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
-                "src.streamlit_runtime.generate_answer",
+                "src.streamlit_app.runtime.generate_answer",
                 return_value="The PDF says this.",
             ),
             patch(
-                "src.streamlit_runtime.remember_answer_result"
+                "src.streamlit_app.runtime.remember_answer_result"
             ) as remember_result,
-            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
-            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
         ):
             generate_answer_once(question_context, use_google_search=False)
 
@@ -121,9 +121,9 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         )
 
         with (
-            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
-                "src.streamlit_runtime.generate_answer",
+                "src.streamlit_app.runtime.generate_answer",
                 return_value=(
                     '{"pdf_answer": "The PDF says this.", '
                     '"pdf_source_numbers": [1], '
@@ -133,10 +133,10 @@ class GenerateAnswerOnceTests(unittest.TestCase):
                 ),
             ),
             patch(
-                "src.streamlit_runtime.remember_answer_result"
+                "src.streamlit_app.runtime.remember_answer_result"
             ) as remember_result,
-            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
-            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
         ):
             generate_answer_once(question_context, use_google_search=True)
 
@@ -160,9 +160,9 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         )
 
         with (
-            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
-                "src.streamlit_runtime.generate_answer",
+                "src.streamlit_app.runtime.generate_answer",
                 return_value=(
                     '{"pdf_answer": "The PDF says this.", '
                     '"pdf_source_numbers": [2], '
@@ -172,10 +172,10 @@ class GenerateAnswerOnceTests(unittest.TestCase):
                 ),
             ),
             patch(
-                "src.streamlit_runtime.remember_answer_result"
+                "src.streamlit_app.runtime.remember_answer_result"
             ) as remember_result,
-            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
-            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
         ):
             generate_answer_once(question_context, use_google_search=False)
 

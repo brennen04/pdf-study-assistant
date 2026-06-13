@@ -1,13 +1,13 @@
 import streamlit as st
 
-from src.streamlit_pages.shared import render_page_header, render_upload_control
-from src.streamlit_runtime import (
+from src.answer.web_citations import format_web_citation
+from src.streamlit_app.pages.shared import render_page_header, render_upload_control
+from src.streamlit_app.runtime import (
     generate_answer_once,
     get_question_context,
     load_current_document,
 )
-from src.streamlit_state import get_answer_result
-from src.web_citations import format_web_citation
+from src.streamlit_app.state import get_answer_result
 
 
 def render_study_page() -> None:

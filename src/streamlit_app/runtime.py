@@ -4,18 +4,18 @@ from time import perf_counter
 
 import streamlit as st
 
-from src.answer_parser import AnswerParseError, parse_answer_output
-from src.answer_result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
-from src.answer_validation import AnswerValidationError, validate_pdf_source_numbers
-from src.gemini_client import DEFAULT_GEMINI_MODEL, generate_answer
-from src.pdf_loader import extract_text_from_pdf
-from src.rag_pipeline import (
+from src.answer.parser import AnswerParseError, parse_answer_output
+from src.answer.result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
+from src.answer.validation import AnswerValidationError, validate_pdf_source_numbers
+from src.providers.gemini_client import DEFAULT_GEMINI_MODEL, generate_answer
+from src.rag.pdf_loader import extract_text_from_pdf
+from src.rag.pipeline import (
     DocumentIndex,
     QuestionContext,
     build_document_index,
     build_question_context,
 )
-from src.streamlit_state import (
+from src.streamlit_app.state import (
     get_answer_cache_key,
     get_current_pdf,
     get_loaded_document_for_current_pdf,

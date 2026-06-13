@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import patch
 
-from src.rag_pipeline import DocumentIndex, build_document_index, build_question_context
-from src.task_intent import TaskIntent
+from src.rag.pipeline import DocumentIndex, build_document_index, build_question_context
+from src.rag.task_intent import TaskIntent
 
 
 class RagPipelineTests(unittest.TestCase):
     def test_build_document_index_chunks_and_embeds_text(self):
         with patch(
-            "src.rag_pipeline.embed_texts",
+            "src.rag.pipeline.embed_texts",
             return_value=[[1.0], [0.5]],
         ) as embed_texts:
             document_index = build_document_index("abcdef", chunk_size=3, chunk_overlap=0)
@@ -23,7 +23,7 @@ class RagPipelineTests(unittest.TestCase):
             embeddings=[[0.1, 0.9], [1.0, 0.0]],
         )
 
-        with patch("src.rag_pipeline.embed_texts", return_value=[[1.0, 0.0]]):
+        with patch("src.rag.pipeline.embed_texts", return_value=[[1.0, 0.0]]):
             question_context = build_question_context(
                 question="What matters?",
                 document_index=document_index,
@@ -46,8 +46,8 @@ class RagPipelineTests(unittest.TestCase):
         )
 
         with (
-            patch("src.rag_pipeline.embed_texts", return_value=[[1.0]]),
-            patch("src.rag_pipeline.rank_chunks_by_similarity") as rank_chunks,
+            patch("src.rag.pipeline.embed_texts", return_value=[[1.0]]),
+            patch("src.rag.pipeline.rank_chunks_by_similarity") as rank_chunks,
         ):
             question_context = build_question_context(
                 question="Summarise this document.",
