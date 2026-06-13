@@ -89,6 +89,8 @@ Keep documentation responsibilities separate:
 - `docs/decisions.md`: durable decisions and tradeoffs.
 - `docs/deployment.md`: deployment-specific instructions.
 
+Always write down your design decisions or rationale in decisions.md
+
 If a decision matters for future work, record it in the most specific document
 above.
 
