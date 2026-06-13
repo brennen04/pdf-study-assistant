@@ -19,9 +19,9 @@ class GenerateAnswerTests(unittest.TestCase):
         fake_google_module = ModuleType("google")
         fake_genai_module = ModuleType("google.genai")
         fake_types_module = ModuleType("google.genai.types")
-        fake_genai_module.Client = FakeClient
-        fake_genai_module.types = fake_types_module
-        fake_google_module.genai = fake_genai_module
+        setattr(fake_genai_module, "Client", FakeClient)
+        setattr(fake_genai_module, "types", fake_types_module)
+        setattr(fake_google_module, "genai", fake_genai_module)
 
         with patch.dict(
             "sys.modules",
