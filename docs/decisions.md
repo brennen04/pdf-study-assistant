@@ -166,3 +166,30 @@ Mitigation:
 - request a non-empty `internet_supplement` when internet context is enabled,
   but use an explicit fallback message if the model returns `null`
 - reject internet supplements when internet context is disabled
+
+## Render Grounding Redirects As Readable Citations
+
+Decision: keep raw web citation URLs in answer results, but render Google
+grounding redirect URLs with readable labels in the UI.
+
+Reason:
+
+- Gemini/Google grounding can return long `vertexaisearch.cloud.google.com`
+  redirect URLs
+- those URLs are valid link targets but poor reading material
+- the user needs clear source boundaries without visual noise
+- preserving the original URL keeps traceability and debugging possible
+
+Tradeoff:
+
+- the current app does not yet extract richer grounding metadata such as source
+  title, publisher, or final destination URL
+
+Mitigation:
+
+- render Google grounding redirects as stable labels such as
+  `Google Search result 1`
+- render normal URLs by domain
+- keep the original URL as the Markdown link target
+- revisit provider metadata extraction when the Gemini client returns structured
+  model-call metadata instead of only response text

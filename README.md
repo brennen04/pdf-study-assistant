@@ -41,6 +41,7 @@ Current user flow:
 5. Retrieve relevant PDF chunks for a question.
 6. Generate a PDF-grounded answer with Gemini.
 7. Optionally add internet information as a clearly separated supplement.
+8. Show PDF sources and readable web citation links for traceability.
 
 The app has two Streamlit pages:
 
@@ -133,10 +134,13 @@ Implemented:
 - local embedding generation
 - in-memory document index
 - semantic retrieval
+- deterministic task-intent routing for lookup versus study transformation requests
 - PDF-grounded prompt construction
 - Gemini answer generation
 - explicit answer result, parsed answer sections, and model-call objects
+- parsed PDF source validation
 - optional Google Search grounding
+- readable web citation rendering for Google grounding redirect links
 - `/study` and `/logic` pages
 - Streamlit state/runtime/page separation
 - Hugging Face Spaces Docker deployment setup
@@ -149,7 +153,11 @@ Complete the explicit answer result model.
 
 The app now asks Gemini for a structured answer contract and parses PDF answer,
 internet supplement, source numbers, web citations, and disagreement notes into
-application objects while preserving raw model output for debugging. The
-remaining work is to strengthen expected error boundaries before database work,
-because persistence should follow stable application models instead of defining
-them prematurely.
+application objects while preserving raw model output for debugging. It also
+routes lookup and study-transformation requests differently, validates parsed
+PDF source references, and renders long Google grounding redirect URLs behind
+readable citation labels.
+
+The next production-readiness step is to strengthen expected error boundaries
+before database work, because persistence should follow stable application
+models instead of defining them prematurely.
