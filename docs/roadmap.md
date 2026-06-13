@@ -48,15 +48,20 @@ AnswerError
 Completed first slice:
 
 - answer generation stores an `AnswerResult`
+- Gemini is prompted for a stricter JSON answer contract
+- parsed answer fields include PDF answer, internet supplement, PDF source
+  numbers, web citations, and disagreement notes
 - `/study` renders from the structured result
-- `/logic` can inspect model-call metadata and raw output
-- tests cover result construction and basic provider failure behavior
+- `/logic` can inspect model-call metadata, parsed fields, and raw output
+- tests cover result construction, answer parsing, malformed model output, and
+  basic provider failure behavior
 
 Remaining:
 
-- separate PDF answer, internet supplement, and citations more explicitly
 - improve expected error classification beyond exception class names
-- decide whether the prompt should request a stricter parseable response format
+- validate parsed PDF source numbers against retrieved sources
+- decide how strict web citation extraction should be with Google Search
+  grounding metadata
 
 Definition of done:
 
@@ -145,6 +150,7 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Continue the explicit answer result model by designing a stricter answer output
-contract. The key question is whether Gemini should return structured sections
-that can be parsed into `pdf_answer`, `internet_supplement`, and citations.
+Continue the explicit answer result model by tightening validation and expected
+error boundaries. The next useful slice is to classify common failures with
+stable application error codes and validate parsed source references against the
+retrieved PDF sources.

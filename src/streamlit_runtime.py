@@ -4,6 +4,7 @@ from time import perf_counter
 
 import streamlit as st
 
+from src.answer_parser import AnswerParseError, parse_answer_output
 from src.answer_result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
 from src.gemini_client import DEFAULT_GEMINI_MODEL, generate_answer
 from src.pdf_loader import extract_text_from_pdf
@@ -133,22 +134,46 @@ def generate_answer_once(
             )
         else:
             latency_seconds = perf_counter() - started_at
-            remember_answer_result(
-                AnswerResult(
-                    question=question_context.question,
-                    pdf_answer=answer,
-                    internet_supplement=None,
-                    sources=build_retrieved_sources(
-                        question_context.retrieved_chunks
-                    ),
-                    model_call=ModelCall(
-                        provider="google",
-                        model_name=DEFAULT_GEMINI_MODEL,
-                        prompt=question_context.answer_prompt,
-                        use_google_search=use_google_search,
-                        latency_seconds=latency_seconds,
-                        raw_output=answer,
-                    ),
-                )
+            model_call = ModelCall(
+                provider="google",
+                model_name=DEFAULT_GEMINI_MODEL,
+                prompt=question_context.answer_prompt,
+                use_google_search=use_google_search,
+                latency_seconds=latency_seconds,
+                raw_output=answer,
             )
-            remember_answer_cache_key(answer_cache_key)
+            try:
+                parsed_answer = parse_answer_output(answer)
+            except AnswerParseError as error:
+                remember_answer_result(
+                    AnswerResult(
+                        question=question_context.question,
+                        pdf_answer=None,
+                        internet_supplement=None,
+                        sources=build_retrieved_sources(
+                            question_context.retrieved_chunks
+                        ),
+                        model_call=model_call,
+                        error=AnswerError(
+                            code="unparseable_model_output",
+                            message=str(error),
+                            details=answer,
+                        ),
+                    )
+                )
+            else:
+                remember_answer_result(
+                    AnswerResult(
+                        question=question_context.question,
+                        pdf_answer=parsed_answer.pdf_answer,
+                        internet_supplement=parsed_answer.internet_supplement,
+                        sources=build_retrieved_sources(
+                            question_context.retrieved_chunks
+                        ),
+                        model_call=model_call,
+                        pdf_source_numbers=parsed_answer.pdf_source_numbers,
+                        web_citations=parsed_answer.web_citations,
+                        disagreement_note=parsed_answer.disagreement_note,
+                    )
+                )
+                remember_answer_cache_key(answer_cache_key)

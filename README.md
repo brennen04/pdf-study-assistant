@@ -123,7 +123,7 @@ Implemented:
 - semantic retrieval
 - PDF-first prompt construction
 - Gemini answer generation
-- explicit answer result and model-call objects
+- explicit answer result, parsed answer sections, and model-call objects
 - optional Google Search grounding
 - `/study` and `/logic` pages
 - Streamlit state/runtime/page separation
@@ -135,8 +135,9 @@ Current production-oriented milestone:
 Complete the explicit answer result model.
 ```
 
-The first slice now stores answers as structured application objects instead of
-raw strings. The remaining work is to make PDF answer, internet supplement, web
-citations, and error boundaries more explicit before database work, because
-persistence should follow stable application models instead of defining them
-prematurely.
+The app now asks Gemini for a structured answer contract and parses PDF answer,
+internet supplement, source numbers, web citations, and disagreement notes into
+application objects while preserving raw model output for debugging. The
+remaining work is to strengthen expected error boundaries before database work,
+because persistence should follow stable application models instead of defining
+them prematurely.

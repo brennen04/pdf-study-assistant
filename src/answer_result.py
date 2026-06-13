@@ -43,15 +43,17 @@ class AnswerResult:
     """
     Application-level result for one question.
 
-    For now, Gemini returns one raw answer string. The explicit fields give the
-    UI, tests, tracing, and future persistence a stable contract while keeping
-    the raw output available until we introduce stricter answer parsing.
+    The model is prompted to return structured answer sections. Raw output is
+    still preserved on the model call so malformed responses remain debuggable.
     """
     question: str
     pdf_answer: str | None
     internet_supplement: str | None
     sources: list[RetrievedSource]
     model_call: ModelCall
+    pdf_source_numbers: list[int] = field(default_factory=list)
+    web_citations: list[str] = field(default_factory=list)
+    disagreement_note: str | None = None
     error: AnswerError | None = None
 
     @property

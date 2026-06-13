@@ -15,6 +15,9 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
         self.assertIn("Source 1 (similarity: 0.910)", prompt)
         self.assertIn("Do not add internet information", prompt)
         self.assertIn("Internet context is disabled.", prompt)
+        self.assertIn("Return only valid JSON", prompt)
+        self.assertIn('"pdf_answer"', prompt)
+        self.assertIn('"internet_supplement"', prompt)
 
     def test_builds_prompt_with_google_search_grounding_instruction(self):
         prompt = build_grounded_answer_prompt(
@@ -25,6 +28,7 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
 
         self.assertIn("use Google Search grounding", prompt)
         self.assertIn("separate Internet supplement", prompt)
+        self.assertIn('"web_citations"', prompt)
 
     def test_includes_explicit_web_context_when_provided(self):
         prompt = build_grounded_answer_prompt(

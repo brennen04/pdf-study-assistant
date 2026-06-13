@@ -63,12 +63,21 @@ def render_study_page() -> None:
     if answer_result and answer_result.error:
         st.error(answer_result.error.message)
     elif answer_result and answer_result.pdf_answer:
-        st.subheader("Answer")
+        st.subheader("PDF answer")
         st.write(answer_result.pdf_answer)
+
+        if answer_result.disagreement_note:
+            st.subheader("Disagreement note")
+            st.write(answer_result.disagreement_note)
 
         if answer_result.internet_supplement:
             st.subheader("Internet supplement")
             st.write(answer_result.internet_supplement)
+
+            if answer_result.web_citations:
+                st.markdown("**Web citations**")
+                for citation in answer_result.web_citations:
+                    st.write(citation)
 
     with st.expander("PDF sources used"):
         sources = answer_result.sources if answer_result else []

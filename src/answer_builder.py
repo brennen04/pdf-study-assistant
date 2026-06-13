@@ -69,6 +69,17 @@ Rules:
 - If the PDF and internet context disagree, point out the disagreement.
 - If the PDF does not answer the question and internet context is enabled, provide a separate Internet supplement instead of presenting it as the PDF answer.
 - Keep the answer clear, concise, and useful for studying.
+- Return only valid JSON. Do not wrap it in Markdown.
+- The JSON object must use this schema:
+  {{
+    "pdf_answer": "Answer grounded only in the PDF context. Say when the PDF does not contain enough information.",
+    "pdf_source_numbers": [1, 2],
+    "internet_supplement": "Separate internet supplement, or null when internet context is disabled or not useful.",
+    "web_citations": ["Web citation or URL when available"],
+    "disagreement_note": "PDF/internet disagreement, or null when there is no disagreement."
+  }}
+- Only list PDF source numbers that appear in the PDF context above.
+- Keep web citations empty unless internet context provides citation information.
 
 Question:
 {cleaned_question}

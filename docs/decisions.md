@@ -19,16 +19,6 @@ LLM_API_KEY=your-llm-api-key-here
 EMBEDDING_MODEL_LOCAL_ONLY=false
 ```
 
-## Use `LLM_API_KEY` Instead Of `GEMINI_API_KEY`
-
-Decision: use the provider-neutral name `LLM_API_KEY`.
-
-Reason:
-
-- the current provider is Gemini
-- the app may support other LLM providers later
-- the public setup stays less tightly coupled to one provider
-
 ## Do Not Collect API Keys In The Frontend
 
 Decision: the web UI does not include an API key input.
@@ -137,15 +127,19 @@ and `AnswerError` objects while still preserving Gemini's raw answer text.
 
 Reason:
 - UI, tracing, tests, persistence, and evaluation need a stable application contract
-- the current prompt does not yet guarantee a reliably parseable answer format
 - preserving raw output keeps debugging possible while the structured contract evolves
+- malformed model output should be inspectable without being cached as a
+  successful answer
 
 Tradeoff:
 
-- `pdf_answer` currently contains the raw answer text, and `internet_supplement`
-  remains empty until the app introduces stricter response formatting or parsing
+- the prompt now asks for JSON, but LLM output can still be malformed or missing
+  fields
 
 Mitigation:
 
-- keep PDF answer, internet supplement, citations, and error classification as
-  explicit follow-up work in the roadmap
+- parse model output into explicit PDF answer, internet supplement, source,
+  citation, and disagreement fields
+- keep raw output on `ModelCall`
+- represent malformed model output as an application error and avoid caching it
+  as a successful answer

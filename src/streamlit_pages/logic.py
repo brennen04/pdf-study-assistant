@@ -107,6 +107,28 @@ def render_logic_page() -> None:
         st.write(f"Error code: {answer_result.error.code}")
     else:
         st.success("Latest answer generated successfully.")
+        st.write("PDF source numbers cited:")
+        st.write(answer_result.pdf_source_numbers or [])
+
+        st.text_area(
+            "Parsed PDF answer",
+            answer_result.pdf_answer or "",
+            height=180,
+        )
+
+        st.text_area(
+            "Parsed internet supplement",
+            answer_result.internet_supplement or "",
+            height=140,
+        )
+
+        if answer_result.web_citations:
+            st.write("Web citations:")
+            st.write(answer_result.web_citations)
+
+        if answer_result.disagreement_note:
+            st.write("Disagreement note:")
+            st.write(answer_result.disagreement_note)
 
     model_call = answer_result.model_call
     st.write(f"Provider: {model_call.provider}")
