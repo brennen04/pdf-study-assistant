@@ -22,7 +22,7 @@ def render_study_page() -> None:
         "Internet context",
         value=False,
         key="study_internet_context",
-        help="Answer from the PDF first, then supplement with Google Search grounding.",
+        help="Answer from the PDF, then supplement separately with Google Search grounding.",
     )
     st.caption(
         "Enabled: will add web context after the PDF answer."

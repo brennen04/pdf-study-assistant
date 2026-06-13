@@ -23,11 +23,23 @@ Core RAG baseline is mostly complete:
 - local embeddings
 - in-memory `DocumentIndex`
 - semantic retrieval
-- PDF-first prompt construction
+- PDF-grounded prompt construction
 - Gemini answer generation
 - optional Google Search grounding
 - `/study` and `/logic` pages
 - Streamlit state/runtime/page separation
+
+The product rule is now framed as:
+
+```text
+PDF-grounded by default.
+Internet-supplemented only when requested.
+Source boundaries always visible.
+```
+
+This keeps the PDF as the primary authority while allowing study
+transformations, such as summaries or notes, to synthesize from the document
+instead of looking for pre-written summaries inside it.
 
 ## Current Milestone: Explicit AI Result Model
 
@@ -60,6 +72,8 @@ Remaining:
 
 - improve expected error classification beyond exception class names
 - validate parsed PDF source numbers against retrieved sources
+- distinguish factual lookup tasks from study transformation tasks
+- choose retrieval/context strategy based on task intent
 - decide how strict web citation extraction should be with Google Search
   grounding metadata
 
@@ -133,7 +147,20 @@ Make evidence clearer:
 - web citations
 - disagreements between PDF and internet context
 
-This should reinforce the product rule: PDF first, internet second.
+This should reinforce the product rule: PDF-grounded by default,
+internet-supplemented only when requested, and source boundaries always visible.
+
+### Task Intent And Context Strategy
+
+Use different PDF-grounded strategies for different study tasks:
+
+- factual lookup: semantic retrieval top-k
+- summaries, notes, outlines, flashcards, explanations, and study guides:
+  broader PDF context, section-aware context, or a future multi-pass summary
+  flow
+
+This should fix cases where the app says the PDF does not contain a summary even
+though the user is asking the assistant to create one from the PDF.
 
 ## Later Backlog
 
@@ -150,7 +177,8 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Continue the explicit answer result model by tightening validation and expected
-error boundaries. The next useful slice is to classify common failures with
-stable application error codes and validate parsed source references against the
-retrieved PDF sources.
+Continue the explicit answer result model and task routing by tightening
+validation and expected error boundaries. The next useful slice is to classify
+common failures with stable application error codes, validate parsed source
+references against retrieved PDF sources, and add a small task-intent classifier
+for lookup versus study transformation requests.

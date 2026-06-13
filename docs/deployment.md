@@ -27,7 +27,7 @@ colorTo: green
 sdk: docker
 app_port: 8501
 pinned: false
-short_description: PDF-first RAG study assistant with optional internet context
+short_description: PDF-grounded RAG study assistant with optional internet context
 ---
 ```
 
@@ -76,7 +76,7 @@ After the Space builds:
 2. Upload a text-based PDF.
 3. Confirm the document index prepares successfully.
 4. Ask a question.
-5. Confirm the answer is PDF-first.
+5. Confirm the answer is PDF-grounded.
 6. Enable internet context and confirm any web information remains separate.
 7. Open `/logic` and confirm extracted text, chunks, sources, prompt, and answer metadata are inspectable.
 

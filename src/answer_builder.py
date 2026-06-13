@@ -64,7 +64,8 @@ Rules:
 - Treat the PDF as the primary source.
 - Treat internet context as a supplement that can add useful information but must not contradict or replace what the PDF says.
 - Do not use internet context to replace or hide what the PDF says.
-- If the PDF context does not contain enough information, say that clearly before using internet context.
+- For study transformations such as summaries, notes, outlines, flashcards, explanations, or study guides, synthesize from the PDF context instead of looking for an existing summary or note inside the PDF.
+- For factual lookup questions, if the PDF context does not contain enough information, say that clearly before using internet context.
 - Keep PDF-based information and internet-based information separate.
 - If the PDF and internet context disagree, point out the disagreement.
 - If the PDF does not answer the question and internet context is enabled, provide a separate Internet supplement instead of presenting it as the PDF answer.

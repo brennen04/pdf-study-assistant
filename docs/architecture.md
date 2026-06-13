@@ -6,12 +6,24 @@ readiness while staying small enough to learn from.
 Core product rule:
 
 ```text
-PDF first, internet second.
+PDF-grounded by default.
+Internet-supplemented only when requested.
+Source boundaries always visible.
 ```
 
-Answers should use the uploaded PDF as the primary source. Internet context may
-be added only as a clearly separated supplement, and disagreement between PDF
-and internet sources should be surfaced instead of blended.
+The uploaded PDF is the primary authority. Internet context may be added only as
+a clearly separated supplement, and disagreement between PDF and internet
+sources should be surfaced instead of blended.
+
+PDF-grounded answers have two important shapes:
+
+- factual lookup: retrieve the most relevant PDF chunks and answer from them
+- study transformation: synthesize summaries, notes, explanations, outlines,
+  flashcards, or study guides from the PDF context
+
+The app should not tell the user that the PDF lacks a summary merely because the
+summary does not already exist as text. A summary is a transformation over the
+PDF, not a fact that must be found verbatim.
 
 ## System Shape
 
@@ -28,6 +40,16 @@ question -> question embedding -> retrieved PDF chunks -> prompt -> model call -
 The `DocumentIndex` is stable for the current uploaded PDF and can be reused
 across questions. A question, retrieved sources, prompt, model call, and answer
 result are specific to one answer attempt.
+
+Future question answering should route by task intent:
+
+```text
+factual lookup -> semantic retrieval top-k -> answer from retrieved chunks
+study transformation -> broader PDF context strategy -> synthesize from PDF
+```
+
+This keeps the product PDF-grounded while allowing different retrieval strategies
+for different study tasks.
 
 ## Layers
 
@@ -60,7 +82,7 @@ workflow as much as practical.
 - `src/streamlit_runtime.py`: Streamlit cache wrappers and answer-generation orchestration.
 - `src/rag_pipeline.py`: build `DocumentIndex`, build `QuestionContext`, retrieve chunks, build prompts.
 - `src/answer_result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `AnswerError`.
-- `src/answer_builder.py`: PDF-first prompt construction.
+- `src/answer_builder.py`: PDF-grounded prompt construction.
 - `src/pdf_loader.py`, `src/chunker.py`, `src/embedding_client.py`, `src/retriever.py`: focused RAG services.
 - `src/gemini_client.py`: Gemini integration and optional Google Search grounding.
 - `src/config.py`: local `.env` loading.

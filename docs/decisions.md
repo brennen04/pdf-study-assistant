@@ -29,15 +29,31 @@ Reason:
 - public repo users should configure `.env`
 - frontend controls should represent product behavior, not secret management
 
-## PDF First, Internet Second
+## PDF-Grounded By Default
 
-Decision: the answer should use the uploaded PDF as the primary source and internet context only as a separate supplement.
+Decision: the uploaded PDF is the primary authority. Internet context is optional
+and should appear only as a clearly separated supplement when requested. Source
+boundaries must remain visible.
 
 Reason:
 
 - the product is a PDF study assistant, not a general web-search chatbot
 - the user should be able to distinguish document-grounded information from external information
 - disagreements between the PDF and internet sources should be visible instead of blended
+- study transformations such as summaries, notes, outlines, explanations, and
+  flashcards should synthesize from the PDF instead of requiring that artifact
+  to already exist in the document
+
+Tradeoff:
+
+- different question types need different PDF-grounded context strategies
+
+Mitigation:
+
+- use semantic top-k retrieval for factual lookup questions
+- introduce task-intent routing for study transformation requests
+- use broader PDF context, section-aware context, or future multi-pass
+  summarization for whole-document study tasks
 
 ## Use `src/rag_pipeline.py`
 

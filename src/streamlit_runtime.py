@@ -99,7 +99,7 @@ def generate_answer_once(
     if get_answer_cache_key() == answer_cache_key:
         return
 
-    with st.spinner("Generating PDF-first answer..."):
+    with st.spinner("Generating PDF-grounded answer..."):
         started_at = perf_counter()
         try:
             answer = generate_answer(

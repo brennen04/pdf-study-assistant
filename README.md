@@ -6,7 +6,7 @@ colorTo: green
 sdk: docker
 app_port: 8501
 pinned: false
-short_description: PDF-first RAG study assistant with optional internet context
+short_description: PDF-grounded RAG study assistant with optional internet context
 ---
 
 # PDF Study Assistant
@@ -18,6 +18,18 @@ The project is being built incrementally for learning, but the target is a
 production-ready study assistant with memory, traceability, debugging support,
 evaluation, and user history.
 
+Product rule:
+
+```text
+PDF-grounded by default.
+Internet-supplemented only when requested.
+Source boundaries always visible.
+```
+
+The uploaded PDF is the primary authority. Internet context can supplement the
+answer only when requested, and it should remain visibly separate from
+PDF-grounded content.
+
 ## What The App Does
 
 Current user flow:
@@ -27,7 +39,7 @@ Current user flow:
 3. Split the text into chunks.
 4. Embed the chunks locally.
 5. Retrieve relevant PDF chunks for a question.
-6. Generate a PDF-first answer with Gemini.
+6. Generate a PDF-grounded answer with Gemini.
 7. Optionally add internet information as a clearly separated supplement.
 
 The app has two Streamlit pages:
@@ -121,7 +133,7 @@ Implemented:
 - local embedding generation
 - in-memory document index
 - semantic retrieval
-- PDF-first prompt construction
+- PDF-grounded prompt construction
 - Gemini answer generation
 - explicit answer result, parsed answer sections, and model-call objects
 - optional Google Search grounding

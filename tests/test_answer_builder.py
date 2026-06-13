@@ -18,6 +18,8 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
         self.assertIn("Return only valid JSON", prompt)
         self.assertIn('"pdf_answer"', prompt)
         self.assertIn('"internet_supplement"', prompt)
+        self.assertIn("For study transformations", prompt)
+        self.assertIn("synthesize from the PDF context", prompt)
 
     def test_builds_prompt_with_google_search_grounding_instruction(self):
         prompt = build_grounded_answer_prompt(

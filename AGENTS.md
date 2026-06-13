@@ -11,16 +11,24 @@ evaluation, and user history.
 Core product rule:
 
 ```text
-PDF first, internet second.
+PDF-grounded by default.
+Internet-supplemented only when requested.
+Source boundaries always visible.
 ```
 
-Answers should use the uploaded PDF as the primary source. Internet information
-may be added only as a clearly separated supplement. If PDF and internet sources
-disagree, surface the disagreement instead of blending the two.
+The uploaded PDF is the primary authority. Internet information may be added
+only as a clearly separated supplement. If PDF and internet sources disagree,
+surface the disagreement instead of blending the two.
+
+PDF-grounded does not mean lookup-only. For study transformations such as
+summaries, notes, outlines, explanations, flashcards, or study guides, synthesize
+from the PDF instead of requiring the requested artifact to already exist in the
+document.
 
 ## Read First
 
-Use the repository docs as the source of truth and chat history as secondary source
+Use the repository docs as the source of truth and chat history as secondary source,
+
 
 1. `README.md` for setup, current status, and the documentation map.
 2. `docs/architecture.md` for system shape, data flow, and module boundaries.
