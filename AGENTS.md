@@ -48,7 +48,8 @@ Prefer small, focused changes that keep the app working after each step.
 - Keep secrets out of source code. Use `.env.example` for required variables and
   local `.env` files for real values.
 - Do not parrot the documents. Use them as direction, then check whether the
-  direction still fits the current code and product goal.
+  direction still fits the current code and product goal. If you are unsure on
+  certain stuff, ask before assuming
 
 ## Architecture Priorities
 
