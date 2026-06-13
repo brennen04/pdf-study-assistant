@@ -78,7 +78,7 @@ PDF-first prompt construction
 Gemini answer generation
       |
       v
-answer + PDF sources
+AnswerResult + PDF sources
       |
       v
 optional separate internet supplement
@@ -148,10 +148,11 @@ generation. A new question should not rebuild the document index. A page
 navigation should not restart extraction or embedding. But a new PDF should
 clear the old document and answer state.
 
-The next production-oriented boundary is the answer result. The app should not
-permanently treat Gemini output as one raw string. It should turn model output
-into an explicit application object that can be rendered, tested, monitored, and
-eventually persisted.
+The current production-oriented boundary is the answer result. The app now wraps
+Gemini output in an explicit application object that can be rendered, tested,
+monitored, and eventually persisted. The raw model output is still preserved
+because stricter parsing of PDF answer, internet supplement, and web citations is
+future work.
 
 ## Module Responsibilities
 
@@ -178,7 +179,7 @@ Responsibilities:
 - remember the uploaded PDF bytes, file name, and content hash
 - remember the extracted text and prepared `DocumentIndex` for the current PDF
 - clear document and answer state when the uploaded PDF changes
-- store generated answer text, answer errors, and the current answer cache key
+- store the latest `AnswerResult` and the current answer cache key
 
 This module is intentionally Streamlit-specific. It keeps raw `st.session_state`
 keys centralized instead of scattering string keys through the page code.
@@ -193,7 +194,7 @@ Responsibilities:
 - wrap document indexing with `st.cache_data`
 - load the current PDF into an extracted-text/document-index pair
 - build question context through the core RAG pipeline
-- generate an answer once for a stable prompt/internet-context key
+- generate an `AnswerResult` once for a stable prompt/internet-context key
 
 This module coordinates Streamlit caching and rerun behavior, while the actual
 RAG algorithm still lives in `src/rag_pipeline.py`.
@@ -225,6 +226,17 @@ Responsibilities:
 - build the grounded answer prompt
 
 This module is the boundary between UI code and application behavior.
+
+### `src/answer_result.py`
+
+Answer result application models.
+
+Responsibilities:
+
+- represent the retrieved PDF sources used for an answer
+- represent model-call metadata such as provider, model name, prompt, raw output, latency, and timestamp
+- represent answer-generation errors as structured application data
+- provide the `AnswerResult` object rendered by `/study` and inspected by `/logic`
 
 ### `src/pdf_loader.py`
 
@@ -295,7 +307,8 @@ user question
    -> answer_builder.build_grounded_answer_prompt
 -> streamlit_runtime.generate_answer_once
    -> gemini_client.generate_answer
--> /study displays answer and sources
+   -> answer_result.AnswerResult
+-> /study displays structured answer result and sources
 ```
 
 ## Streamlit State And Caching
@@ -338,8 +351,10 @@ read the answer.
 
 ## Architecture Priorities
 
-The next architecture boundary is the answer result. The app should move from a
-raw Gemini string toward explicit answer result and model-call objects.
+The active architecture boundary is still the answer result. The first slice
+introduced explicit answer result and model-call objects. The next slices should
+make PDF answer, internet supplement, citations, and expected failures more
+structured without adding persistence too early.
 
 The roadmap in `docs/roadmap.md` owns the full implementation sequence. This
 file owns the system shape and current module boundaries.

@@ -129,3 +129,23 @@ Reason:
 - future sessions need a clear source of truth
 - public users need a concise entry point
 - Codex needs instructions without duplicating every architecture detail
+
+## Preserve Raw Model Output In Answer Results
+
+Decision: introduce structured `AnswerResult`, `ModelCall`, `RetrievedSource`,
+and `AnswerError` objects while still preserving Gemini's raw answer text.
+
+Reason:
+- UI, tracing, tests, persistence, and evaluation need a stable application contract
+- the current prompt does not yet guarantee a reliably parseable answer format
+- preserving raw output keeps debugging possible while the structured contract evolves
+
+Tradeoff:
+
+- `pdf_answer` currently contains the raw answer text, and `internet_supplement`
+  remains empty until the app introduces stricter response formatting or parsing
+
+Mitigation:
+
+- keep PDF answer, internet supplement, citations, and error classification as
+  explicit follow-up work in the roadmap

@@ -92,7 +92,7 @@ Definition of done:
 
 ## Milestone 2: Explicit AI Result Model
 
-Status: next.
+Status: in progress.
 
 Goal:
 
@@ -122,6 +122,19 @@ The result model should represent:
 - latency
 - created timestamp
 - error state
+
+Completed first slice:
+
+- `AnswerResult`, `ModelCall`, `RetrievedSource`, and `AnswerError` exist as application objects.
+- answer generation stores a structured result instead of a raw answer string.
+- `/study` renders from the structured result.
+- `/logic` can inspect latest model-call metadata and raw output.
+
+Remaining:
+
+- make PDF answer, internet supplement, and web citations more explicit instead of relying on one raw Gemini answer string
+- improve expected failure classification beyond exception class names
+- decide whether prompt formatting should produce a more parseable response contract
 
 Production value:
 
@@ -532,7 +545,7 @@ Definition of done:
 
 ## Current Next Milestone
 
-Milestone 2: Explicit AI Result Model.
+Continue Milestone 2: Explicit AI Result Model.
 
 Why this is next:
 
