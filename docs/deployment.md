@@ -1,18 +1,12 @@
 # Deployment
 
-This project should be deployed to Hugging Face Spaces first.
+Primary target: Hugging Face Spaces with the Docker SDK.
 
-Hugging Face Spaces is a good fit because the app is ML-heavy: it uses Streamlit, SentenceTransformers, Torch, and a local embedding model.
+Use Docker because the app depends on Streamlit, SentenceTransformers, Torch,
+and a local embedding model. Streamlit Community Cloud is possible, but Hugging
+Face Spaces is the better first deployment target for this ML-heavy app.
 
-## Recommended Target: Hugging Face Spaces With Docker
-
-Use the **Docker SDK** when creating the Space.
-
-The Hugging Face docs note that the older built-in Streamlit SDK path is deprecated in favor of Docker SDK with a Streamlit template. Docker is also a better engineering choice for this project because it makes the runtime explicit.
-
-## Files Required For Deployment
-
-The repo should include:
+## Required Files
 
 - `Dockerfile`
 - `app.py`
@@ -22,7 +16,7 @@ The repo should include:
 - `README.md`
 - `docs/`
 
-`README.md` must start with Hugging Face Space configuration front matter:
+`README.md` must keep the Hugging Face Space front matter at the top:
 
 ```yaml
 ---
@@ -37,126 +31,58 @@ short_description: PDF-first RAG study assistant with optional internet context
 ---
 ```
 
-Why: Hugging Face reads the YAML block at the top of `README.md` to decide how the Space should build and run. For this project, `sdk: docker` tells Hugging Face to use the Dockerfile, and `app_port: 8501` matches Streamlit's port.
+## Docker Contract
 
-Do not commit:
+The Dockerfile should:
 
-- `.env`
-- real API keys
-- `venv/`
-- `__pycache__/`
-- local model caches
+- start from Python 3.11
+- install `requirements.txt`
+- copy the project files
+- expose port `8501`
+- run `streamlit run app.py`
 
-## Dockerfile Contract
+The Streamlit command disables XSRF protection because Hugging Face serves the
+app through its own proxy. Without that setting, deployed file uploads may fail
+with browser-side `403` errors.
 
-The Dockerfile:
+## Secrets
 
-- starts from Python 3.11
-- installs dependencies from `requirements.txt`
-- copies the project files
-- exposes port `8501`
-- runs `streamlit run app.py`
-
-Hugging Face Spaces will build this image and run the Streamlit app.
-
-The Docker command disables Streamlit XSRF protection because Hugging Face
-Spaces serves Streamlit through its own proxy. With the default Streamlit XSRF
-setting, file uploads can fail in the deployed Space with a browser-side `403`
-error even though local uploads work.
-
-## Create The Hugging Face Space
-
-1. Go to Hugging Face Spaces.
-2. Create a new Space.
-3. Choose **Docker** as the SDK.
-4. Choose public or private visibility.
-5. Push this repository to the Space.
-
-## Configure Secrets
-
-In the Space settings, add these secrets or variables:
+Set these in Hugging Face Space settings:
 
 ```text
 LLM_API_KEY=your-real-api-key
 EMBEDDING_MODEL_LOCAL_ONLY=false
 ```
 
-The deployed app should not use `.env`. Hugging Face injects secrets as environment variables.
+Never commit real secrets in `.env`, `.env.example`, source code, README
+examples, or frontend UI fields.
 
-## Push The App To The Space
+## Push
 
-You can either push directly to the Space repository or connect from GitHub.
-
-Direct Git flow:
+Direct Space remote:
 
 ```powershell
 git remote add space https://huggingface.co/spaces/<your-username>/<your-space-name>
 git push space main
 ```
 
-If the Space uses a different default branch, push to that branch instead.
+If the Space uses another default branch, push to that branch instead.
 
-## Expected Browser Behavior
+## Smoke Test
 
-After the Space builds successfully:
+After the Space builds:
 
-1. `/study` loads as the main study workflow.
-2. Uploading a text-based PDF prepares the document index.
-3. Asking a question retrieves relevant PDF sections.
-4. The app generates a PDF-first answer.
-5. If internet context is enabled, Gemini may add a separate internet supplement.
-6. `/logic` shows the learning/debug view for extracted text, chunks, embeddings, retrieved sections, and prompt inspection.
+1. Open `/study`.
+2. Upload a text-based PDF.
+3. Confirm the document index prepares successfully.
+4. Ask a question.
+5. Confirm the answer is PDF-first.
+6. Enable internet context and confirm any web information remains separate.
+7. Open `/logic` and confirm extracted text, chunks, sources, prompt, and answer metadata are inspectable.
 
-## Deployment Caveats
+## Caveats
 
-### First Run May Be Slow
-
-The embedding model may download the first time the app processes a PDF.
-
-That is expected when:
-
-```env
-EMBEDDING_MODEL_LOCAL_ONLY=false
-```
-
-### Build May Be Heavy
-
-`sentence-transformers` and `torch` are large dependencies.
-
-If the build or runtime is too slow, consider:
-
-- upgrading the Space hardware
-- replacing local embeddings with a hosted embedding API
-- caching or persisting document indexes later
-- reducing dependency pins once the project is more stable
-
-### API Keys
-
-Never place real keys in:
-
-- `.env.example`
-- source code
-- README examples
-- frontend UI fields
-
-Use Hugging Face Space secrets.
-
-## Alternative: Streamlit Community Cloud
-
-Streamlit Community Cloud can also deploy this app, but it may struggle more with ML-heavy dependencies.
-
-If using Streamlit Community Cloud:
-
-1. Create a Streamlit app from the GitHub repo.
-2. Set the main file path to `app.py`.
-3. Add `LLM_API_KEY` and `EMBEDDING_MODEL_LOCAL_ONLY` as secrets.
-
-## Future Deployment Improvements
-
-Before treating the app as production-ready, add:
-
-- automated tests
-- deployment smoke tests
-- stronger Gemini API failure handling
-- clearer embedding model download errors
-- optional persistent storage for document indexes
+- First PDF processing may be slow while the embedding model downloads.
+- `sentence-transformers` and `torch` make builds heavy.
+- If deployment becomes too slow, consider hosted embeddings, upgraded Space hardware, or persisted indexes.
+- Do not add deployment complexity until the app model needs it.

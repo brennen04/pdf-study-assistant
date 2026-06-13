@@ -32,6 +32,9 @@ Use the repository docs as the source of truth and chat history as secondary sou
 
 Prefer small, focused changes that keep the app working after each step.
 
+- Design the slice before coding it. Read the relevant docs first, decide
+  whether their direction still fits the current code, then implement the
+  smallest useful step.
 - Keep Streamlit thin: page rendering, session state, cache wrappers, and
   rerun-safe orchestration belong in focused Streamlit modules.
 - Keep reusable RAG behavior in `src/`, especially workflow coordination in
@@ -39,10 +42,13 @@ Prefer small, focused changes that keep the app working after each step.
 - Make important application data explicit instead of hiding it inside raw
   strings.
 - Do not add infrastructure before the application model needs it.
-- Update public docs when setup, dependencies, behavior, or architecture
-  changes.
+- Update public docs only when setup, dependencies, user-visible behavior,
+  architecture, or durable decisions change. Do not create extra documentation
+  just to narrate routine code changes.
 - Keep secrets out of source code. Use `.env.example` for required variables and
   local `.env` files for real values.
+- Do not parrot the documents. Use them as direction, then check whether the
+  direction still fits the current code and product goal.
 
 ## Architecture Priorities
 
@@ -84,3 +90,6 @@ Keep documentation responsibilities separate:
 
 If a decision matters for future work, record it in the most specific document
 above.
+
+Prefer improving an existing document over adding a new one. If documentation
+starts feeling repetitive, consolidate it instead of expanding the set of docs.
