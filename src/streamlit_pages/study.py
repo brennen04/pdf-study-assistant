@@ -7,6 +7,7 @@ from src.streamlit_runtime import (
     load_current_document,
 )
 from src.streamlit_state import get_answer_result
+from src.web_citations import format_web_citation
 
 
 def render_study_page() -> None:
@@ -76,8 +77,11 @@ def render_study_page() -> None:
 
             if answer_result.web_citations:
                 st.markdown("**Web citations**")
-                for citation in answer_result.web_citations:
-                    st.write(citation)
+                for citation_number, citation in enumerate(
+                    answer_result.web_citations,
+                    start=1,
+                ):
+                    st.markdown(format_web_citation(citation, citation_number))
 
     with st.expander("PDF sources used"):
         sources = answer_result.sources if answer_result else []

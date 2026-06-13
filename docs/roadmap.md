@@ -28,6 +28,7 @@ Core RAG baseline is mostly complete:
   requests
 - Gemini answer generation
 - optional Google Search grounding
+- readable web citation rendering for Google grounding redirect links
 - `/study` and `/logic` pages
 - Streamlit state/runtime/page separation
 
@@ -147,7 +148,8 @@ Make evidence clearer:
 - PDF answer
 - PDF chunks used
 - internet supplement
-- web citations
+- readable web citations, including hiding long Google grounding redirect URLs
+  behind stable labels
 - disagreements between PDF and internet context
 
 This should reinforce the product rule: PDF-grounded by default,
@@ -167,11 +169,24 @@ though the user is asking the assistant to create one from the PDF.
 Future improvements should make the broad context strategy section-aware and add
 a multi-pass summary flow for long documents.
 
+### Evaluation
+
+Start evaluation before adding orchestration frameworks:
+
+1. Create a small local golden dataset with PDFs, questions, expected answer
+   traits, expected source behavior, and expected error states.
+2. Add deterministic checks for parser behavior, citation boundaries, source
+   references, task intent, and retrieval quality.
+3. Add LLM-as-judge evaluation only after deterministic checks exist, using it
+   for answer helpfulness, faithfulness, and separation of PDF versus internet
+   content.
+4. Consider LangChain or LangGraph only when evaluation needs multi-step
+   orchestration, repeated judge prompts, dataset runners, or report generation.
+
 ## Later Backlog
 
 Keep these as future options until the product needs them:
 
-- evaluation dataset and regression checks
 - backend API service, likely FastAPI
 - persisted embeddings or vector database
 - CI/CD and deployment hardening

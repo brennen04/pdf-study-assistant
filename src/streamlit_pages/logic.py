@@ -3,6 +3,7 @@ import streamlit as st
 from src.streamlit_pages.shared import render_current_pdf_status, render_page_header
 from src.streamlit_runtime import get_question_context, load_current_document
 from src.streamlit_state import get_answer_result, get_current_pdf
+from src.web_citations import format_web_citation
 
 
 def render_logic_page() -> None:
@@ -127,7 +128,11 @@ def render_logic_page() -> None:
 
         if answer_result.web_citations:
             st.write("Web citations:")
-            st.write(answer_result.web_citations)
+            for citation_number, citation in enumerate(
+                answer_result.web_citations,
+                start=1,
+            ):
+                st.markdown(format_web_citation(citation, citation_number))
 
         if answer_result.disagreement_note:
             st.write("Disagreement note:")
