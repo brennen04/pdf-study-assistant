@@ -1,9 +1,11 @@
 from hashlib import sha256
 from io import BytesIO
+from time import perf_counter
 
 import streamlit as st
 
-from src.gemini_client import generate_answer
+from src.answer_result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
+from src.gemini_client import DEFAULT_GEMINI_MODEL, generate_answer
 from src.pdf_loader import extract_text_from_pdf
 from src.rag_pipeline import (
     DocumentIndex,
@@ -15,9 +17,8 @@ from src.streamlit_state import (
     get_answer_cache_key,
     get_current_pdf,
     get_loaded_document_for_current_pdf,
-    remember_answer,
     remember_answer_cache_key,
-    remember_answer_error,
+    remember_answer_result,
     remember_loaded_document,
 )
 
@@ -98,13 +99,56 @@ def generate_answer_once(
         return
 
     with st.spinner("Generating PDF-first answer..."):
+        started_at = perf_counter()
         try:
             answer = generate_answer(
                 prompt=question_context.answer_prompt,
                 use_google_search=use_google_search,
+                model_name=DEFAULT_GEMINI_MODEL,
             )
         except Exception as error:
-            remember_answer_error(str(error))
+            latency_seconds = perf_counter() - started_at
+            remember_answer_result(
+                AnswerResult(
+                    question=question_context.question,
+                    pdf_answer=None,
+                    internet_supplement=None,
+                    sources=build_retrieved_sources(
+                        question_context.retrieved_chunks
+                    ),
+                    model_call=ModelCall(
+                        provider="google",
+                        model_name=DEFAULT_GEMINI_MODEL,
+                        prompt=question_context.answer_prompt,
+                        use_google_search=use_google_search,
+                        latency_seconds=latency_seconds,
+                        raw_output=None,
+                    ),
+                    error=AnswerError(
+                        code=type(error).__name__,
+                        message=str(error),
+                        details=repr(error),
+                    ),
+                )
+            )
         else:
-            remember_answer(answer)
+            latency_seconds = perf_counter() - started_at
+            remember_answer_result(
+                AnswerResult(
+                    question=question_context.question,
+                    pdf_answer=answer,
+                    internet_supplement=None,
+                    sources=build_retrieved_sources(
+                        question_context.retrieved_chunks
+                    ),
+                    model_call=ModelCall(
+                        provider="google",
+                        model_name=DEFAULT_GEMINI_MODEL,
+                        prompt=question_context.answer_prompt,
+                        use_google_search=use_google_search,
+                        latency_seconds=latency_seconds,
+                        raw_output=answer,
+                    ),
+                )
+            )
             remember_answer_cache_key(answer_cache_key)

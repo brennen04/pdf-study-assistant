@@ -3,6 +3,7 @@ from hashlib import sha256
 
 import streamlit as st
 
+from src.answer_result import AnswerResult
 from src.rag_pipeline import DocumentIndex
 
 
@@ -13,8 +14,7 @@ LOADED_PDF_HASH_KEY = "loaded_pdf_hash"
 EXTRACTED_TEXT_KEY = "extracted_text"
 DOCUMENT_INDEX_KEY = "document_index"
 ANSWER_CACHE_KEY = "answer_cache_key"
-ANSWER_KEY = "answer"
-ANSWER_ERROR_KEY = "answer_error"
+ANSWER_RESULT_KEY = "answer_result"
 
 
 @dataclass(frozen=True)
@@ -105,8 +105,7 @@ def remember_loaded_document(
 
 def clear_answer() -> None:
     st.session_state[ANSWER_CACHE_KEY] = None
-    st.session_state[ANSWER_KEY] = None
-    st.session_state[ANSWER_ERROR_KEY] = None
+    st.session_state[ANSWER_RESULT_KEY] = None
 
 
 def get_answer_cache_key() -> str | None:
@@ -117,19 +116,9 @@ def remember_answer_cache_key(answer_cache_key: str) -> None:
     st.session_state[ANSWER_CACHE_KEY] = answer_cache_key
 
 
-def remember_answer(answer: str) -> None:
-    st.session_state[ANSWER_KEY] = answer
-    st.session_state[ANSWER_ERROR_KEY] = None
+def remember_answer_result(answer_result: AnswerResult) -> None:
+    st.session_state[ANSWER_RESULT_KEY] = answer_result
 
 
-def remember_answer_error(error_message: str) -> None:
-    st.session_state[ANSWER_ERROR_KEY] = error_message
-    st.session_state[ANSWER_KEY] = None
-
-
-def get_answer() -> str | None:
-    return st.session_state.get(ANSWER_KEY)
-
-
-def get_answer_error() -> str | None:
-    return st.session_state.get(ANSWER_ERROR_KEY)
+def get_answer_result() -> AnswerResult | None:
+    return st.session_state.get(ANSWER_RESULT_KEY)

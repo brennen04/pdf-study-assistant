@@ -23,6 +23,7 @@ class QuestionContext:
     """
     Retrieved context and prompt for a single user question.
     """
+    question: str
     query_embedding: list[float]
     retrieved_chunks: list[tuple[str, float]]
     answer_prompt: str
@@ -69,6 +70,7 @@ def build_question_context(
     )
 
     return QuestionContext(
+        question=question.strip(),
         query_embedding=query_embedding,
         retrieved_chunks=retrieved_chunks,
         answer_prompt=answer_prompt,

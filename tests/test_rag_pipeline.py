@@ -31,6 +31,7 @@ class RagPipelineTests(unittest.TestCase):
             )
 
         self.assertEqual(question_context.query_embedding, [1.0, 0.0])
+        self.assertEqual(question_context.question, "What matters?")
         self.assertEqual(question_context.retrieved_chunks[0][0], "most relevant")
         self.assertIn("What matters?", question_context.answer_prompt)
         self.assertIn("Google Search grounding", question_context.answer_prompt)

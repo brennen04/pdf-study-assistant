@@ -2,7 +2,7 @@ import streamlit as st
 
 from src.streamlit_pages.shared import render_current_pdf_status, render_page_header
 from src.streamlit_runtime import get_question_context, load_current_document
-from src.streamlit_state import get_current_pdf
+from src.streamlit_state import get_answer_result, get_current_pdf
 
 
 def render_logic_page() -> None:
@@ -92,4 +92,34 @@ def render_logic_page() -> None:
         "LLM prompt",
         question_context.answer_prompt,
         height=350,
+    )
+
+    answer_result = get_answer_result()
+
+    if answer_result is None:
+        return
+
+    st.subheader("Latest Answer Result")
+    st.write(f"Question: {answer_result.question}")
+
+    if answer_result.error:
+        st.error(answer_result.error.message)
+        st.write(f"Error code: {answer_result.error.code}")
+    else:
+        st.success("Latest answer generated successfully.")
+
+    model_call = answer_result.model_call
+    st.write(f"Provider: {model_call.provider}")
+    st.write(f"Model: {model_call.model_name}")
+    st.write(f"Internet context enabled: {model_call.use_google_search}")
+
+    if model_call.latency_seconds is not None:
+        st.write(f"Latency: {model_call.latency_seconds:.2f} seconds")
+
+    st.write(f"Created at: {model_call.created_at.isoformat()}")
+
+    st.text_area(
+        "Raw model output",
+        model_call.raw_output or "",
+        height=250,
     )

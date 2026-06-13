@@ -6,7 +6,7 @@ from src.streamlit_runtime import (
     get_question_context,
     load_current_document,
 )
-from src.streamlit_state import get_answer, get_answer_error
+from src.streamlit_state import get_answer_result
 
 
 def render_study_page() -> None:
@@ -58,19 +58,23 @@ def render_study_page() -> None:
         use_google_search=use_google_search,
     )
 
-    answer_error = get_answer_error()
-    answer = get_answer()
+    answer_result = get_answer_result()
 
-    if answer_error:
-        st.error(answer_error)
-    elif answer:
+    if answer_result and answer_result.error:
+        st.error(answer_result.error.message)
+    elif answer_result and answer_result.pdf_answer:
         st.subheader("Answer")
-        st.write(answer)
+        st.write(answer_result.pdf_answer)
+
+        if answer_result.internet_supplement:
+            st.subheader("Internet supplement")
+            st.write(answer_result.internet_supplement)
 
     with st.expander("PDF sources used"):
-        for result_number, (chunk, score) in enumerate(
-            question_context.retrieved_chunks,
-            start=1,
-        ):
-            st.markdown(f"**Source {result_number} - similarity {score:.3f}**")
-            st.write(chunk)
+        sources = answer_result.sources if answer_result else []
+        for source in sources:
+            st.markdown(
+                f"**Source {source.source_number} - "
+                f"similarity {source.similarity:.3f}**"
+            )
+            st.write(source.text)

@@ -123,17 +123,20 @@ Implemented:
 - semantic retrieval
 - PDF-first prompt construction
 - Gemini answer generation
+- explicit answer result and model-call objects
 - optional Google Search grounding
 - `/study` and `/logic` pages
 - Streamlit state/runtime/page separation
 - Hugging Face Spaces Docker deployment setup
 
-Next production-oriented milestone:
+Current production-oriented milestone:
 
 ```text
-Introduce explicit answer result and model-call objects.
+Complete the explicit answer result model.
 ```
 
-That milestone is described in `docs/roadmap.md`. It should happen before
-database work because persistence should follow stable application models, not
-define them prematurely.
+The first slice now stores answers as structured application objects instead of
+raw strings. The remaining work is to make PDF answer, internet supplement, web
+citations, and error boundaries more explicit before database work, because
+persistence should follow stable application models instead of defining them
+prematurely.
