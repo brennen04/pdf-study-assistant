@@ -25,7 +25,11 @@ STUDY_TRANSFORMATION_KEYWORDS = (
     "key points",
     "main ideas",
     "takeaways",
-    "how to"
+    "how to",
+    "what is this about",
+    "what's this about",
+    "what is it about",
+    "what this is about",
 )
 
 

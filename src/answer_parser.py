@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass, field
 from json import JSONDecodeError
 from typing import Any
@@ -32,7 +33,7 @@ def parse_answer_output(
         raise AnswerParseError("Model output was empty.")
 
     try:
-        payload = json.loads(_strip_json_code_fence(cleaned_output))
+        payload = json.loads(_repair_common_json_omissions(_extract_json_object(cleaned_output)))
     except JSONDecodeError as error:
         raise AnswerParseError("Model output was not valid JSON.") from error
 
@@ -43,8 +44,8 @@ def parse_answer_output(
     internet_supplement = _optional_string(payload, "internet_supplement")
 
     if internet_context_enabled and internet_supplement is None:
-        raise AnswerParseError(
-            "Model output must include internet_supplement when internet context is enabled."
+        internet_supplement = (
+            "No separate internet supplement was returned by the model."
         )
 
     if not internet_context_enabled and internet_supplement is not None:
@@ -65,11 +66,34 @@ def parse_answer_output(
     )
 
 
-def _strip_json_code_fence(output: str) -> str:
-    if not output.startswith("```"):
-        return output
+def _extract_json_object(output: str) -> str:
+    stripped_output = _strip_json_code_fence(output)
 
+    if stripped_output.startswith("{"):
+        return stripped_output
+
+    json_start = stripped_output.find("{")
+    json_end = stripped_output.rfind("}")
+
+    if json_start == -1 or json_end == -1 or json_end < json_start:
+        return stripped_output
+
+    return stripped_output[json_start : json_end + 1]
+
+
+def _repair_common_json_omissions(output: str) -> str:
+    return re.sub(
+        r'("pdf_source_numbers"\s*:\s*)(?=,)',
+        r"\1[]",
+        output,
+    )
+
+
+def _strip_json_code_fence(output: str) -> str:
     lines = output.splitlines()
+
+    if not lines or not lines[0].strip().startswith("```"):
+        return output
 
     if len(lines) < 3 or lines[-1].strip() != "```":
         return output

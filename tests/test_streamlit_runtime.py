@@ -110,7 +110,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertEqual(answer_result.model_call.raw_output, "The PDF says this.")
         remember_key.assert_not_called()
 
-    def test_does_not_cache_missing_internet_supplement_when_search_enabled(self):
+    def test_uses_fallback_for_missing_internet_supplement_when_search_enabled(self):
         question_context = QuestionContext(
             question="What does the PDF say?",
             task_intent=TaskIntent.FACTUAL_LOOKUP,
@@ -141,10 +141,13 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             generate_answer_once(question_context, use_google_search=True)
 
         answer_result = remember_result.call_args.args[0]
-        self.assertEqual(answer_result.error.code, "unparseable_model_output")
-        self.assertIn("internet_supplement", answer_result.error.message)
+        self.assertTrue(answer_result.is_success)
+        self.assertEqual(
+            answer_result.internet_supplement,
+            "No separate internet supplement was returned by the model.",
+        )
         self.assertTrue(answer_result.model_call.use_google_search)
-        remember_key.assert_not_called()
+        remember_key.assert_called_once()
 
     def test_does_not_cache_invalid_pdf_source_reference(self):
         question_context = QuestionContext(

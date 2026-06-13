@@ -16,6 +16,12 @@ class TaskIntentTests(unittest.TestCase):
             TaskIntent.STUDY_TRANSFORMATION,
         )
 
+    def test_classifies_document_overview_as_study_transformation(self):
+        self.assertEqual(
+            classify_task_intent("What is this about?"),
+            TaskIntent.STUDY_TRANSFORMATION,
+        )
+
     def test_classifies_lookup_as_factual_lookup(self):
         self.assertEqual(
             classify_task_intent("What does the PDF say about retrieval?"),

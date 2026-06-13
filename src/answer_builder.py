@@ -84,6 +84,7 @@ Rules:
     "disagreement_note": "PDF/internet disagreement, or null when there is no disagreement."
   }}
 - Only list PDF source numbers that appear in the PDF context above.
+- If no PDF source number is appropriate, set pdf_source_numbers to [].
 - When internet context is enabled, internet_supplement must be a non-empty string. If web search adds no useful information, say that clearly in internet_supplement.
 - When internet context is disabled, internet_supplement must be null.
 - Keep web citations empty unless internet context provides citation information.

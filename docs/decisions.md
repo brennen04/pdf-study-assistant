@@ -163,5 +163,6 @@ Mitigation:
 - keep raw output on `ModelCall`
 - represent malformed model output as an application error and avoid caching it
   as a successful answer
-- require a non-empty `internet_supplement` when internet context is enabled,
-  and reject internet supplements when internet context is disabled
+- request a non-empty `internet_supplement` when internet context is enabled,
+  but use an explicit fallback message if the model returns `null`
+- reject internet supplements when internet context is disabled
