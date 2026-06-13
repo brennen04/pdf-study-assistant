@@ -30,6 +30,7 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
 
         self.assertIn("use Google Search grounding", prompt)
         self.assertIn("separate Internet supplement", prompt)
+        self.assertIn("internet_supplement must be a non-empty string", prompt)
         self.assertIn('"web_citations"', prompt)
 
     def test_includes_explicit_web_context_when_provided(self):

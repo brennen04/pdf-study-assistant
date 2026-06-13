@@ -42,7 +42,7 @@ def build_grounded_answer_prompt(
     elif internet_context_enabled:
         internet_instruction = (
             "After the PDF-based answer, use Google Search grounding to add a "
-            "separate Internet supplement if useful."
+            "separate Internet supplement."
         )
         web_section = (
             "Internet context is enabled through Google Search grounding. "
@@ -75,11 +75,13 @@ Rules:
   {{
     "pdf_answer": "Answer grounded only in the PDF context. Say when the PDF does not contain enough information.",
     "pdf_source_numbers": [1, 2],
-    "internet_supplement": "Separate internet supplement, or null when internet context is disabled or not useful.",
+    "internet_supplement": "Separate internet supplement when internet context is enabled; otherwise null.",
     "web_citations": ["Web citation or URL when available"],
     "disagreement_note": "PDF/internet disagreement, or null when there is no disagreement."
   }}
 - Only list PDF source numbers that appear in the PDF context above.
+- When internet context is enabled, internet_supplement must be a non-empty string. If web search adds no useful information, say that clearly in internet_supplement.
+- When internet context is disabled, internet_supplement must be null.
 - Keep web citations empty unless internet context provides citation information.
 
 Question:

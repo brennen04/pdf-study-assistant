@@ -19,7 +19,10 @@ class ParsedAnswer:
     disagreement_note: str | None = None
 
 
-def parse_answer_output(raw_output: str) -> ParsedAnswer:
+def parse_answer_output(
+    raw_output: str,
+    internet_context_enabled: bool = False,
+) -> ParsedAnswer:
     """
     Parse model output into the app's structured answer contract.
     """
@@ -38,6 +41,17 @@ def parse_answer_output(raw_output: str) -> ParsedAnswer:
 
     pdf_answer = _required_string(payload, "pdf_answer")
     internet_supplement = _optional_string(payload, "internet_supplement")
+
+    if internet_context_enabled and internet_supplement is None:
+        raise AnswerParseError(
+            "Model output must include internet_supplement when internet context is enabled."
+        )
+
+    if not internet_context_enabled and internet_supplement is not None:
+        raise AnswerParseError(
+            "Model output must not include internet_supplement when internet context is disabled."
+        )
+
     disagreement_note = _optional_string(payload, "disagreement_note")
     pdf_source_numbers = _integer_list(payload.get("pdf_source_numbers", []))
     web_citations = _string_list(payload.get("web_citations", []))

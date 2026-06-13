@@ -103,6 +103,40 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertEqual(answer_result.model_call.raw_output, "The PDF says this.")
         remember_key.assert_not_called()
 
+    def test_does_not_cache_missing_internet_supplement_when_search_enabled(self):
+        question_context = QuestionContext(
+            question="What does the PDF say?",
+            query_embedding=[1.0],
+            retrieved_chunks=[("PDF context", 0.9)],
+            answer_prompt="Answer from this PDF context.",
+        )
+
+        with (
+            patch("src.streamlit_runtime.get_answer_cache_key", return_value=None),
+            patch(
+                "src.streamlit_runtime.generate_answer",
+                return_value=(
+                    '{"pdf_answer": "The PDF says this.", '
+                    '"pdf_source_numbers": [1], '
+                    '"internet_supplement": null, '
+                    '"web_citations": [], '
+                    '"disagreement_note": null}'
+                ),
+            ),
+            patch(
+                "src.streamlit_runtime.remember_answer_result"
+            ) as remember_result,
+            patch("src.streamlit_runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_runtime.st.spinner", return_value=nullcontext()),
+        ):
+            generate_answer_once(question_context, use_google_search=True)
+
+        answer_result = remember_result.call_args.args[0]
+        self.assertEqual(answer_result.error.code, "unparseable_model_output")
+        self.assertIn("internet_supplement", answer_result.error.message)
+        self.assertTrue(answer_result.model_call.use_google_search)
+        remember_key.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

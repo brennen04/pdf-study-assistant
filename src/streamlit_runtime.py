@@ -143,7 +143,10 @@ def generate_answer_once(
                 raw_output=answer,
             )
             try:
-                parsed_answer = parse_answer_output(answer)
+                parsed_answer = parse_answer_output(
+                    answer,
+                    internet_context_enabled=use_google_search,
+                )
             except AnswerParseError as error:
                 remember_answer_result(
                     AnswerResult(

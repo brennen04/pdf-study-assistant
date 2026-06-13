@@ -14,7 +14,8 @@ class AnswerParserTests(unittest.TestCase):
               "web_citations": ["https://example.com"],
               "disagreement_note": "The PDF and web disagree."
             }
-            """
+            """,
+            internet_context_enabled=True,
         )
 
         self.assertEqual(parsed_answer.pdf_answer, "The PDF says this.")
@@ -45,6 +46,20 @@ class AnswerParserTests(unittest.TestCase):
         with self.assertRaisesRegex(AnswerParseError, "pdf_source_numbers"):
             parse_answer_output(
                 '{"pdf_answer": "Answer.", "pdf_source_numbers": ["one"]}'
+            )
+
+    def test_rejects_missing_internet_supplement_when_internet_enabled(self):
+        with self.assertRaisesRegex(AnswerParseError, "internet_supplement"):
+            parse_answer_output(
+                '{"pdf_answer": "Answer.", "internet_supplement": null}',
+                internet_context_enabled=True,
+            )
+
+    def test_rejects_internet_supplement_when_internet_disabled(self):
+        with self.assertRaisesRegex(AnswerParseError, "internet_supplement"):
+            parse_answer_output(
+                '{"pdf_answer": "Answer.", "internet_supplement": "Web answer."}',
+                internet_context_enabled=False,
             )
 
 
