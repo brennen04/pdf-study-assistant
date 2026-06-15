@@ -4,6 +4,7 @@ This roadmap serves both goals:
 
 1. build a real PDF Study Assistant, not a disposable demo
 2. learn production-oriented RAG engineering by shipping useful slices
+3. produce a portfolio project that clearly shows AI engineering judgment
 
 The delivery loop is:
 
@@ -14,25 +15,9 @@ design a slice -> implement it -> test it -> document only what matters -> revie
 Do not add infrastructure before the application model needs it. Keep every
 milestone locally verifiable.
 
-## Current Status
+## Product Rule
 
-Core RAG baseline is mostly complete:
-
-- PDF upload and text extraction
-- chunking
-- local embeddings
-- in-memory `DocumentIndex`
-- semantic retrieval
-- PDF-grounded prompt construction
-- deterministic task-intent routing for lookup versus study transformation
-  requests
-- Gemini answer generation
-- optional Google Search grounding
-- readable web citation rendering for Google grounding redirect links
-- `/study` and `/logic` pages
-- Streamlit state/runtime/page separation
-
-The product rule is now framed as:
+The product rule is:
 
 ```text
 PDF-grounded by default.
@@ -44,55 +29,14 @@ This keeps the PDF as the primary authority while allowing study
 transformations, such as summaries or notes, to synthesize from the document
 instead of looking for pre-written summaries inside it.
 
-## Current Milestone: Explicit AI Result Model
+## Current Milestone: Error Boundaries
 
 Status: in progress.
 
-Goal: replace raw answer strings with structured application objects that can
-support rendering, debugging, persistence, evaluation, and future APIs.
+Goal: represent expected failures as stable application states before adding
+persistence.
 
-Current objects:
-
-```text
-AnswerResult
-ModelCall
-RetrievedSource
-AnswerError
-```
-
-Completed first slice:
-
-- answer generation stores an `AnswerResult`
-- Gemini is prompted for a stricter JSON answer contract
-- parsed answer fields include PDF answer, internet supplement, PDF source
-  numbers, web citations, and disagreement notes
-- `/study` renders from the structured result
-- `/logic` can inspect model-call metadata, parsed fields, and raw output
-- parsed PDF source numbers are validated against retrieved PDF sources before
-  an answer is treated as successful
-- tests cover result construction, answer parsing, malformed model output, and
-  basic provider failure behavior
-
-Remaining:
-
-- improve expected error classification beyond exception class names
-- improve the study transformation context strategy beyond first chunks, likely
-  with section-aware context or a future multi-pass summary flow
-- decide how strict web citation extraction should be with Google Search
-  grounding metadata
-
-Definition of done:
-
-- UI no longer depends on raw answer strings
-- result objects carry answer content, sources, model-call metadata, and errors
-- `/logic` exposes enough detail to debug a single answer run
-- tests cover success and common failure paths
-
-## Next Milestones
-
-### Error Boundaries
-
-Represent expected failures as stable application states:
+Common failures:
 
 - missing or invalid API key
 - provider failure or timeout
@@ -102,6 +46,15 @@ Represent expected failures as stable application states:
 - weak or empty retrieval results
 
 Keep user-facing messages separate from developer details.
+
+Definition of done:
+
+- `AnswerError` uses stable codes for common expected failures
+- `/study` shows helpful messages without leaking provider internals
+- `/logic` exposes developer details for debugging
+- tests cover success and expected failure paths
+
+## Next Milestones
 
 ### Traceability
 
@@ -119,6 +72,19 @@ Capture enough information to explain how an answer was produced:
 - timestamp
 
 The `/logic` page is the first home for this.
+
+### Result And Citation Hardening
+
+Make answer boundaries clearer:
+
+- PDF answer
+- PDF chunks used
+- internet supplement
+- readable web citations
+- disagreements between PDF and internet context
+
+Decide how strict web citation extraction should be with Google Search
+grounding metadata.
 
 ### Persistence And History
 
@@ -140,20 +106,6 @@ evaluations
 ```
 
 Storage should follow application models, not define them too early.
-
-### Source And Citation UX
-
-Make evidence clearer:
-
-- PDF answer
-- PDF chunks used
-- internet supplement
-- readable web citations, including hiding long Google grounding redirect URLs
-  behind stable labels
-- disagreements between PDF and internet context
-
-This should reinforce the product rule: PDF-grounded by default,
-internet-supplemented only when requested, and source boundaries always visible.
 
 ### Task Intent And Context Strategy
 
@@ -197,6 +149,5 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Continue the explicit answer result model and task routing by tightening
-validation and expected error boundaries. The next useful slice is to classify
-common failures with stable application error codes.
+Classify common failures with stable application error codes, then expose those
+codes through `AnswerError`, `/study`, `/logic`, and focused tests.

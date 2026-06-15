@@ -2,6 +2,30 @@
 
 This file records important project decisions and the reasoning behind them.
 
+## Build As A RAG Architecture Showcase
+
+Decision: build PDF Study Assistant as both a usable study tool and an AI
+engineering portfolio project.
+
+Reason:
+
+- the project should demonstrate architecture judgment, not only API usage
+- RAG systems are easiest to explain when ingestion, retrieval, prompting,
+  model calls, answer contracts, traceability, and evaluation are visible
+- learning the architecture while building is a primary project goal
+
+Tradeoff:
+
+- some features may take longer because the code should be inspectable,
+  testable, and easy to explain
+
+Mitigation:
+
+- ship small vertical slices
+- keep Streamlit thin and reusable behavior in `src/`
+- prefer explicit application objects over raw strings at important boundaries
+- document durable decisions, not routine implementation notes
+
 ## Use `.env.example` And Ignore `.env`
 
 Decision: commit `.env.example`, ignore `.env`.
@@ -57,9 +81,9 @@ Mitigation:
 - improve broad context later with section-aware context or future multi-pass
   summarization for long documents
 
-## Use `src/rag_pipeline.py`
+## Keep RAG Workflow Coordination In `src/rag/pipeline.py`
 
-Decision: move core RAG workflow coordination into `src/rag_pipeline.py`.
+Decision: keep core RAG workflow coordination in `src/rag/pipeline.py`.
 
 Reason:
 
@@ -69,9 +93,9 @@ Reason:
 
 Related boundary:
 
-- Streamlit session state lives in `src/streamlit_state.py`
-- Streamlit cache/runtime orchestration lives in `src/streamlit_runtime.py`
-- Streamlit page rendering lives in `src/streamlit_pages/`
+- Streamlit session state lives in `src/streamlit_app/state.py`
+- Streamlit cache/runtime orchestration lives in `src/streamlit_app/runtime.py`
+- Streamlit page rendering lives in `src/streamlit_app/pages/`
 
 ## Generate Immediately, But Dedupe LLM Calls
 

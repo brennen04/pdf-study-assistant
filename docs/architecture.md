@@ -1,7 +1,9 @@
 # Architecture
 
-PDF Study Assistant is a Streamlit RAG study tool moving toward production
-readiness while staying small enough to learn from.
+PDF Study Assistant is a Streamlit RAG study tool and AI engineering showcase.
+It should stay small enough to learn from while demonstrating production-shaped
+boundaries: ingestion, retrieval, prompting, model calls, answer contracts,
+traceability, evaluation, and deployment.
 
 Core product rule:
 
@@ -24,6 +26,18 @@ PDF-grounded answers have two important shapes:
 The app should not tell the user that the PDF lacks a summary merely because the
 summary does not already exist as text. A summary is a transformation over the
 PDF, not a fact that must be found verbatim.
+
+## Architecture Goals
+
+The architecture should make the RAG system explainable to both a user and a
+future engineer:
+
+- each workflow step has an owner and can be inspected
+- Streamlit handles UI and rerun behavior, not core RAG logic
+- provider details stay behind small integration modules
+- answer content, citations, model calls, and expected errors are explicit
+  application objects
+- tests focus on deterministic logic before provider or UI behavior
 
 ## System Shape
 
@@ -113,9 +127,7 @@ they should not poison the success cache.
 
 ## Current Boundary
 
-The active architecture boundary is the answer result.
-
-The first slice introduced structured answer and model-call objects while
-preserving raw Gemini output. Next slices should make PDF answer, internet
-supplement, citations, and expected failures more explicit before adding
-persistence.
+The active architecture boundary is expected failure handling. The answer result
+model now carries structured answer content, citations, retrieved PDF sources,
+model-call metadata, raw provider output, and application errors. Next slices
+should make common failures stable before adding persistence.

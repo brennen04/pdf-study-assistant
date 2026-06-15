@@ -43,10 +43,16 @@ Prefer small, focused changes that keep the app working after each step.
 - Design the slice before coding it. Read the relevant docs first, decide
   whether their direction still fits the current code, then implement the
   smallest useful step.
+- Avoid full file rewrites when a focused patch can make the change safely.
+  Preserve existing structure, wording, and formatting unless there is a clear
+  reason to reshape them.
+- When editing documentation or code, keep token use low by changing only the
+  necessary lines. Reuse existing text when it is still accurate instead of
+  deleting and rewriting whole sections.
 - Keep Streamlit thin: page rendering, session state, cache wrappers, and
   rerun-safe orchestration belong in focused Streamlit modules.
 - Keep reusable RAG behavior in `src/`, especially workflow coordination in
-  `src/rag_pipeline.py` or similarly focused modules.
+  `src/rag/pipeline.py` or similarly focused modules.
 - Make important application data explicit instead of hiding it inside raw
   strings.
 - Do not add infrastructure before the application model needs it.

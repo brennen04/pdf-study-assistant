@@ -12,11 +12,11 @@ short_description: PDF-grounded RAG study assistant with optional internet conte
 # PDF Study Assistant
 
 PDF Study Assistant is a Streamlit-based Retrieval-Augmented Generation (RAG)
-study tool.
+study tool and portfolio project.
 
-The project is being built incrementally for learning, but the target is a
-production-ready study assistant with memory, traceability, debugging support,
-evaluation, and user history.
+The goal is to build a useful PDF-grounded assistant while learning the
+architecture of production-oriented AI systems: ingestion, retrieval, prompt
+construction, model boundaries, traceability, evaluation, and deployment.
 
 Product rule:
 
@@ -47,6 +47,18 @@ The app has two Streamlit pages:
 
 - `/study`: upload a PDF, ask a question, and read the generated answer.
 - `/logic`: inspect extracted text, chunks, embeddings, retrieval results, and prompts.
+
+## Engineering Goals
+
+This project should read like an AI Engineer showcase, not a notebook demo.
+Every major feature should make one part of the RAG architecture easier to
+understand, test, or explain:
+
+- keep Streamlit thin and move reusable behavior into `src/`
+- make important data explicit with application objects
+- preserve traceability from question to sources to model output
+- test pure logic before UI behavior
+- add infrastructure only when the application model needs it
 
 ## Quick Start
 
@@ -129,35 +141,14 @@ Each document has a distinct responsibility:
 
 Implemented:
 
-- PDF upload and text extraction
-- chunking
-- local embedding generation
-- in-memory document index
-- semantic retrieval
-- deterministic task-intent routing for lookup versus study transformation requests
-- PDF-grounded prompt construction
-- Gemini answer generation
-- explicit answer result, parsed answer sections, and model-call objects
-- parsed PDF source validation
-- optional Google Search grounding
-- readable web citation rendering for Google grounding redirect links
-- `/study` and `/logic` pages
-- Streamlit state/runtime/page separation
-- Hugging Face Spaces Docker deployment setup
+- PDF ingestion, chunking, local embeddings, in-memory indexing, and retrieval
+- task-intent routing for lookup versus study transformation requests
+- PDF-grounded prompt construction and Gemini answer generation
+- structured answer results with parsed answer sections, citations, and model-call metadata
+- optional Google Search grounding with visibly separated web context
+- `/study` and `/logic` pages for user flow and architecture inspection
+- Streamlit state/runtime/page separation and Hugging Face Spaces Docker setup
 
-Current production-oriented milestone:
-
-```text
-Complete the explicit answer result model.
-```
-
-The app now asks Gemini for a structured answer contract and parses PDF answer,
-internet supplement, source numbers, web citations, and disagreement notes into
-application objects while preserving raw model output for debugging. It also
-routes lookup and study-transformation requests differently, validates parsed
-PDF source references, and renders long Google grounding redirect URLs behind
-readable citation labels.
-
-The next production-readiness step is to strengthen expected error boundaries
-before database work, because persistence should follow stable application
-models instead of defining them prematurely.
+Current production-oriented milestone: strengthen expected error boundaries
+before persistence. Database work should follow stable application models rather
+than define them too early.
