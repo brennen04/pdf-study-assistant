@@ -62,8 +62,9 @@ class RagPipelineTests(unittest.TestCase):
         self.assertEqual(question_context.context_strategy, "broad_document_context")
         self.assertEqual(
             question_context.retrieved_chunks,
-            [("intro", 1.0), ("middle", 1.0)],
+            [("intro", None), ("middle", None)],
         )
+        self.assertIn("Source 1 (broad document context)", question_context.answer_prompt)
         self.assertIn("Task intent:\nstudy_transformation", question_context.answer_prompt)
         rank_chunks.assert_not_called()
 

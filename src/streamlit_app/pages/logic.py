@@ -85,8 +85,13 @@ def render_logic_page() -> None:
         question_context.retrieved_chunks,
         start=1,
     ):
+        source_label = (
+            f"similarity {score:.3f}"
+            if score is not None
+            else "broad document context"
+        )
         with st.expander(
-            f"Result {result_number} - similarity {score:.3f}",
+            f"Result {result_number} - {source_label}",
             expanded=result_number == 1,
         ):
             st.write(chunk)

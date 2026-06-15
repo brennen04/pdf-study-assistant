@@ -86,8 +86,13 @@ def render_study_page() -> None:
     with st.expander("PDF sources used"):
         sources = answer_result.sources if answer_result else []
         for source in sources:
+            source_label = (
+                f"similarity {source.similarity:.3f}"
+                if source.similarity is not None
+                else "broad document context"
+            )
             st.markdown(
                 f"**Source {source.source_number} - "
-                f"similarity {source.similarity:.3f}**"
+                f"{source_label}**"
             )
             st.write(source.text)

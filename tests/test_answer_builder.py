@@ -48,11 +48,12 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
     def test_includes_study_transformation_task_intent(self):
         prompt = build_grounded_answer_prompt(
             question="Summarise this PDF.",
-            retrieved_chunks=[("PDF source.", 1.0)],
+            retrieved_chunks=[("PDF source.", None)],
             task_intent=TaskIntent.STUDY_TRANSFORMATION,
         )
 
         self.assertIn("Task intent:\nstudy_transformation", prompt)
+        self.assertIn("Source 1 (broad document context)", prompt)
 
     def test_rejects_empty_question(self):
         with self.assertRaisesRegex(ValueError, "question"):

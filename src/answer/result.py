@@ -10,7 +10,7 @@ class RetrievedSource:
     """
     source_number: int
     text: str
-    similarity: float
+    similarity: float | None
 
 
 @dataclass(frozen=True)
@@ -62,7 +62,7 @@ class AnswerResult:
 
 
 def build_retrieved_sources(
-    retrieved_chunks: list[tuple[str, float]],
+    retrieved_chunks: list[tuple[str, float | None]],
 ) -> list[RetrievedSource]:
     return [
         RetrievedSource(

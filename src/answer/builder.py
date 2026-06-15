@@ -3,7 +3,7 @@ from src.rag.task_intent import TaskIntent
 
 def build_grounded_answer_prompt(
     question: str,
-    retrieved_chunks: list[tuple[str, float]],
+    retrieved_chunks: list[tuple[str, float | None]],
     internet_context_enabled: bool = False,
     web_context: list[str] | None = None,
     task_intent: TaskIntent = TaskIntent.FACTUAL_LOOKUP,
@@ -26,8 +26,13 @@ def build_grounded_answer_prompt(
     context_sections = []
 
     for index, (chunk, score) in enumerate(retrieved_chunks, start=1):
+        source_label = (
+            f"similarity: {score:.3f}"
+            if score is not None
+            else "broad document context"
+        )
         context_sections.append(
-            f"Source {index} (similarity: {score:.3f}):\n{chunk.strip()}"
+            f"Source {index} ({source_label}):\n{chunk.strip()}"
         )
 
     context = "\n\n".join(context_sections)

@@ -193,3 +193,26 @@ Mitigation:
 - keep the original URL as the Markdown link target
 - revisit provider metadata extraction when the Gemini client returns structured
   model-call metadata instead of only response text
+
+## Do Not Fake Similarity Scores For Broad Context
+
+Decision: use a missing similarity score for broad document context selected for
+study transformations instead of assigning `1.000`.
+
+Reason:
+
+- broad context is selected by task strategy, not semantic nearest-neighbor
+  ranking
+- showing `similarity 1.000` made study-transformation sources look like perfect
+  embedding matches
+- source labels should explain why a chunk was included
+
+Tradeoff:
+
+- retrieved source scores are now optional because not every context strategy
+  produces a numeric score
+
+Mitigation:
+
+- render semantic retrieval sources with similarity scores
+- render study-transformation sources as broad document context

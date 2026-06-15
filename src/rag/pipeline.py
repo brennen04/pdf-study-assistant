@@ -28,7 +28,7 @@ class QuestionContext:
     task_intent: TaskIntent
     context_strategy: str
     query_embedding: list[float]
-    retrieved_chunks: list[tuple[str, float]]
+    retrieved_chunks: list[tuple[str, float | None]]
     answer_prompt: str
 
 
@@ -67,7 +67,7 @@ def build_question_context(
     if task_intent == TaskIntent.STUDY_TRANSFORMATION:
         context_strategy = "broad_document_context"
         retrieved_chunks = [
-            (chunk, 1.0)
+            (chunk, None)
             for chunk in document_index.chunks[:transformation_context_chunks]
         ]
     else:
