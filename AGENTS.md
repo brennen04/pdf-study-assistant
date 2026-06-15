@@ -53,6 +53,13 @@ Prefer small, focused changes that keep the app working after each step.
   rerun-safe orchestration belong in focused Streamlit modules.
 - Keep reusable RAG behavior in `src/`, especially workflow coordination in
   `src/rag/pipeline.py` or similarly focused modules.
+- Add features by extending the smallest responsible boundary. A typical feature
+  should not require touching many unrelated files; if it does, pause and
+  reconsider the design before editing.
+- Follow SOLID-style design where it helps keep the code easy to change:
+  focused modules, single-purpose functions, explicit interfaces between
+  layers, dependency direction from UI toward application services, and tests
+  around reusable logic.
 - Make important application data explicit instead of hiding it inside raw
   strings.
 - Do not add infrastructure before the application model needs it.

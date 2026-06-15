@@ -97,6 +97,30 @@ Related boundary:
 - Streamlit cache/runtime orchestration lives in `src/streamlit_app/runtime.py`
 - Streamlit page rendering lives in `src/streamlit_app/pages/`
 
+## Prefer Small Feature Boundaries
+
+Decision: add new features by extending the smallest responsible module or
+application object instead of spreading changes across many unrelated files.
+
+Reason:
+
+- broad edits make behavior harder to review, test, and debug
+- production-ready learning should build good design habits from the start
+- SOLID-style boundaries keep UI, workflow, domain logic, and providers from
+  collapsing into each other
+
+Tradeoff:
+
+- some features may need a short design pass before implementation instead of
+  immediate code changes
+
+Mitigation:
+
+- design the feature slice before coding
+- keep modules focused on one reason to change
+- pass explicit application objects across boundaries
+- add tests around reusable logic before expanding UI behavior
+
 ## Generate Immediately, But Dedupe LLM Calls
 
 Decision: generate an answer as soon as the user submits a question, without a separate Ask/Generate button.
