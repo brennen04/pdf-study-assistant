@@ -4,8 +4,8 @@ This file records important project decisions and the reasoning behind them.
 
 ## Build As A RAG Architecture Showcase
 
-Decision: build PDF Study Assistant as both a usable study tool and an AI
-engineering portfolio project.
+Decision: build PDF Study Assistant as both a usable study tool and a public AI
+engineering portfolio demo.
 
 Reason:
 
@@ -13,11 +13,15 @@ Reason:
 - RAG systems are easiest to explain when ingestion, retrieval, prompting,
   model calls, answer contracts, traceability, and evaluation are visible
 - learning the architecture while building is a primary project goal
+- recruiters and technical managers should be able to try the deployed app and
+  see professional behavior even when demo inputs fail
 
 Tradeoff:
 
 - some features may take longer because the code should be inspectable,
   testable, and easy to explain
+- the app should feel demo-ready without prematurely optimizing for high-scale
+  public usage
 
 Mitigation:
 
@@ -25,6 +29,8 @@ Mitigation:
 - keep Streamlit thin and reusable behavior in `src/`
 - prefer explicit application objects over raw strings at important boundaries
 - document durable decisions, not routine implementation notes
+- prioritize public-demo-ready error handling before persistence or heavier
+  infrastructure
 
 ## Use `.env.example` And Ignore `.env`
 

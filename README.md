@@ -12,11 +12,13 @@ short_description: PDF-grounded RAG study assistant with optional internet conte
 # PDF Study Assistant
 
 PDF Study Assistant is a Streamlit-based Retrieval-Augmented Generation (RAG)
-study tool and portfolio project.
+study tool and public portfolio demo.
 
 The goal is to build a useful PDF-grounded assistant while learning the
 architecture of production-oriented AI systems: ingestion, retrieval, prompt
-construction, model boundaries, traceability, evaluation, and deployment.
+construction, model boundaries, traceability, evaluation, and deployment. The
+deployed app should be recruiter- and technical-manager-friendly: easy to try,
+clear about source boundaries, and resilient when demo inputs fail.
 
 Product rule:
 
@@ -149,6 +151,6 @@ Implemented:
 - `/study` and `/logic` pages for user flow and architecture inspection
 - Streamlit state/runtime/page separation and Hugging Face Spaces Docker setup
 
-Current production-oriented milestone: strengthen expected error boundaries
-before persistence. Database work should follow stable application models rather
-than define them too early.
+Current production-oriented milestone: strengthen public-demo-ready error
+boundaries before persistence. Database work should follow stable application
+models rather than define them too early.

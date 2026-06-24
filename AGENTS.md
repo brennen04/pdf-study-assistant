@@ -4,8 +4,8 @@ Guidance for Codex and other coding agents working in this repository.
 
 ## Project Context
 
-PDF Study Assistant is a Streamlit RAG study tool. It is a learning project, but
-the target is production readiness: memory, traceability, debugging support,
+PDF Study Assistant is a Streamlit RAG study tool. It is a public portfolio demo, but
+the target is production-shaped readiness: memory, traceability, debugging support,
 evaluation, and user history.
 
 Core product rule:

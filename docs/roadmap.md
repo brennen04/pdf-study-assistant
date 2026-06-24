@@ -4,7 +4,7 @@ This roadmap serves both goals:
 
 1. build a real PDF Study Assistant, not a disposable demo
 2. learn production-oriented RAG engineering by shipping useful slices
-3. produce a portfolio project that clearly shows AI engineering judgment
+3. produce a public portfolio demo that clearly shows AI engineering judgment
 
 The delivery loop is:
 
@@ -34,7 +34,9 @@ instead of looking for pre-written summaries inside it.
 Status: in progress.
 
 Goal: represent expected failures as stable application states before adding
-persistence.
+persistence. The public demo should fail gracefully for recruiters or technical
+managers who try the app with ordinary PDFs, incomplete configuration, or
+temporary provider issues.
 
 Common failures:
 
@@ -51,7 +53,7 @@ Definition of done:
 
 - `AnswerError` uses stable codes for common expected failures
 - `/study` shows helpful messages without leaking provider internals
-- `/logic` exposes developer details for debugging
+- `/logic` exposes developer details for debugging and architectural inspection
 - tests cover success and expected failure paths
 
 ## Next Milestones
