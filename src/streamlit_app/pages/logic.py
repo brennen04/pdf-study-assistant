@@ -43,7 +43,7 @@ def render_logic_page() -> None:
     st.write(f"Created {len(document_index.chunks):,} text chunks.")
     st.text_area(
         "First chunk",
-        document_index.chunks[0],
+        document_index.chunks[0].text,
         height=250,
     )
 
@@ -122,10 +122,11 @@ def render_logic_page() -> None:
             else "broad document context"
         )
         with st.expander(
-            f"Result {result_number} - {source_label}",
+            f"Result {result_number} - {chunk.filename}, page {chunk.page_number}, "
+            f"chunk {chunk.chunk_id} - {source_label}",
             expanded=result_number == 1,
         ):
-            st.write(chunk)
+            st.write(chunk.text)
 
     st.subheader("Prompt")
     st.text_area(
@@ -151,8 +152,17 @@ def render_logic_page() -> None:
             )
     else:
         st.success("Latest answer generated successfully.")
-        st.write("PDF source numbers cited:")
-        st.write(answer_result.pdf_source_numbers or [])
+        cited_sources = [
+            source
+            for source in answer_result.sources
+            if source.source_number in answer_result.pdf_source_numbers
+        ]
+        st.write("PDF evidence cited:")
+        for source in cited_sources:
+            st.write(
+                f"Source {source.source_number}: {source.filename}, "
+                f"page {source.page_number}, chunk {source.chunk_id}"
+            )
 
         st.text_area(
             "Parsed PDF answer",

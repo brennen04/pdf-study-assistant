@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from src.rag.document import DocumentChunk
+
 
 @dataclass(frozen=True)
 class RetrievedSource:
@@ -9,6 +11,10 @@ class RetrievedSource:
     A PDF chunk that was retrieved for one question.
     """
     source_number: int
+    document_id: str
+    filename: str
+    page_number: int
+    chunk_id: int
     text: str
     similarity: float | None
 
@@ -62,12 +68,16 @@ class AnswerResult:
 
 
 def build_retrieved_sources(
-    retrieved_chunks: list[tuple[str, float | None]],
+    retrieved_chunks: list[tuple[DocumentChunk, float | None]],
 ) -> list[RetrievedSource]:
     return [
         RetrievedSource(
             source_number=index,
-            text=chunk,
+            document_id=chunk.document_id,
+            filename=chunk.filename,
+            page_number=chunk.page_number,
+            chunk_id=chunk.chunk_id,
+            text=chunk.text,
             similarity=similarity,
         )
         for index, (chunk, similarity) in enumerate(retrieved_chunks, start=1)

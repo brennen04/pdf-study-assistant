@@ -134,10 +134,10 @@ they should not poison the success cache.
 ## Current Boundary
 
 The answer result and failure boundaries are established enough to support the next
-portfolio slice. The active architecture boundary is now evidence-grade PDF RAG:
-preserve page-aware metadata through loading, chunking, retrieval, and answer
-rendering; make long-document summaries cover the document; and evaluate changes
-against a versioned local dataset before adding persistence.
+portfolio slice. Page-aware metadata now flows through loading, chunking, retrieval,
+prompts, and answer rendering. The next boundary is to make long-document summaries
+cover the document and evaluate changes against a versioned local dataset before
+adding persistence.
 
 The answer result model carries structured answer content, citations, retrieved PDF
 sources, model-call metadata, raw provider output, and application errors. Future

@@ -24,22 +24,6 @@ def render_study_page() -> None:
 
     render_upload_control()
 
-    st.session_state.setdefault(
-        "study_internet_context",
-        get_latest_internet_context_enabled(),
-    )
-    use_google_search = st.toggle(
-        "Internet context",
-        value=False,
-        key="study_internet_context",
-        help="Answer from the PDF, then supplement separately with Google Search grounding.",
-    )
-    st.caption(
-        "Enabled: will add web context after the PDF answer."
-        if use_google_search
-        else "Disabled: will answer from the PDF context only."
-    )
-
     loaded_document = load_current_document()
 
     if loaded_document is None:
@@ -48,31 +32,51 @@ def render_study_page() -> None:
     _, document_index = loaded_document
 
     st.session_state.setdefault("study_question", get_latest_question())
-    question = st.text_input(
-        "Question",
-        placeholder="What are the main ideas in this PDF?",
-        key="study_question",
+    st.session_state.setdefault(
+        "study_internet_context",
+        get_latest_internet_context_enabled(),
     )
 
-    remember_question_settings(
-        question=question,
-        internet_context_enabled=use_google_search,
+    with st.form("study_question_form", enter_to_submit=False):
+        question = st.text_input(
+            "Question",
+            placeholder="Ask a question regarding the PDF content",
+            key="study_question",
+        )
+        use_google_search = st.toggle(
+            "Internet context",
+            value=False,
+            key="study_internet_context",
+            help="Answer from the PDF, then supplement separately with Google Search grounding.",
+        )
+        submitted = st.form_submit_button("Generate answer")
+
+    st.caption(
+        "Enabled: will add web context after the PDF answer."
+        if use_google_search
+        else "Disabled: will answer from the PDF context only."
     )
 
-    if not question.strip():
-        return
-
-    with st.spinner("Finding relevant PDF sections..."):
-        question_context = get_question_context(
-            question=question.strip(),
-            document_index=document_index,
+    if submitted:
+        remember_question_settings(
+            question=question,
             internet_context_enabled=use_google_search,
         )
 
-    generate_answer_once(
-        question_context=question_context,
-        use_google_search=use_google_search,
-    )
+        if not question.strip():
+            st.warning("Enter a question before generating an answer.")
+        else:
+            with st.spinner("Finding relevant PDF sections..."):
+                question_context = get_question_context(
+                    question=question.strip(),
+                    document_index=document_index,
+                    internet_context_enabled=use_google_search,
+                )
+
+            generate_answer_once(
+                question_context=question_context,
+                use_google_search=use_google_search,
+            )
 
     answer_result = get_answer_result()
 
@@ -100,6 +104,12 @@ def render_study_page() -> None:
 
     with st.expander("PDF sources used"):
         sources = answer_result.sources if answer_result else []
+        if answer_result and answer_result.pdf_source_numbers:
+            sources = [
+                source
+                for source in sources
+                if source.source_number in answer_result.pdf_source_numbers
+            ]
         for source in sources:
             source_label = (
                 f"similarity {source.similarity:.3f}"
@@ -107,7 +117,9 @@ def render_study_page() -> None:
                 else "broad document context"
             )
             st.markdown(
-                f"**Source {source.source_number} - "
+                f"**Source {source.source_number} - {source.filename}, "
+                f"page {source.page_number}, chunk {source.chunk_id} - "
                 f"{source_label}**"
             )
-            st.write(source.text)
+            excerpt = source.text[:500]
+            st.write(f"{excerpt}{'...' if len(source.text) > len(excerpt) else ''}")

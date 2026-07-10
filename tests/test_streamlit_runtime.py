@@ -2,9 +2,14 @@ import unittest
 from contextlib import nullcontext
 from unittest.mock import patch
 
+from src.rag.document import DocumentChunk
 from src.rag.pipeline import QuestionContext
 from src.rag.task_intent import TaskIntent
 from src.streamlit_app.runtime import generate_answer_once
+
+
+def pdf_chunk() -> DocumentChunk:
+    return DocumentChunk("document-1", "lecture.pdf", 4, 2, "PDF context")
 
 
 class GenerateAnswerOnceTests(unittest.TestCase):
@@ -14,7 +19,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -46,7 +51,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -75,7 +80,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -104,7 +109,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -137,6 +142,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertIn("The PDF says this.", answer_result.model_call.raw_output)
         self.assertTrue(answer_result.model_call.use_google_search)
         self.assertEqual(answer_result.sources[0].text, "PDF context")
+        self.assertEqual(answer_result.sources[0].page_number, 4)
         remember_key.assert_called_once()
 
     def test_does_not_cache_unparseable_model_output(self):
@@ -145,7 +151,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -175,7 +181,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -214,7 +220,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             task_intent=TaskIntent.FACTUAL_LOOKUP,
             context_strategy="semantic_top_k",
             query_embedding=[1.0],
-            retrieved_chunks=[("PDF context", 0.9)],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
 
@@ -242,6 +248,41 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertEqual(answer_result.error.code, "invalid_pdf_source_reference")
         self.assertIn("[2]", answer_result.error.message)
         self.assertEqual(answer_result.sources[0].source_number, 1)
+        remember_key.assert_not_called()
+
+    def test_does_not_cache_pdf_answer_without_source_references(self):
+        question_context = QuestionContext(
+            question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
+            query_embedding=[1.0],
+            retrieved_chunks=[(pdf_chunk(), 0.9)],
+            answer_prompt="Answer from this PDF context.",
+        )
+
+        with (
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
+            patch(
+                "src.streamlit_app.runtime.generate_answer",
+                return_value=(
+                    '{"pdf_answer": "The PDF says this.", '
+                    '"pdf_source_numbers": [], '
+                    '"internet_supplement": "The web adds this.", '
+                    '"web_citations": ["https://example.com"], '
+                    '"disagreement_note": null}'
+                ),
+            ),
+            patch(
+                "src.streamlit_app.runtime.remember_answer_result"
+            ) as remember_result,
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
+        ):
+            generate_answer_once(question_context, use_google_search=True)
+
+        answer_result = remember_result.call_args.args[0]
+        self.assertEqual(answer_result.error.code, "missing_pdf_source_reference")
+        self.assertIn("at least one", answer_result.error.message)
         remember_key.assert_not_called()
 
 if __name__ == "__main__":

@@ -64,6 +64,10 @@ Definition of done:
 The project’s next definition of done is not another infrastructure component. It
 is evidence that the RAG system became more reliable and more auditable.
 
+Completed in the current implementation: explicit answer submission, page-aware
+chunks and citations, and validation that rejects a PDF answer without retrieved
+PDF evidence.
+
 ### 1. Explicit Submission
 
 - require a Generate answer action before making an LLM call
@@ -197,6 +201,6 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Implement the explicit submission boundary, then preserve page-aware PDF metadata
-through the smallest end-to-end citation slice. Capture a baseline evaluation
-before changing long-document summary behavior.
+Use the published baseline to design a coverage-aware long-document summary flow and
+narrow the study-transformation intent rule for factual questions that use words such
+as `explain`. Re-run the same evaluation dataset before keeping either change.

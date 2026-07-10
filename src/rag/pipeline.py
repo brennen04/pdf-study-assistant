@@ -2,7 +2,8 @@ from dataclasses import dataclass
 
 from src.answer.builder import build_grounded_answer_prompt
 from src.providers.embedding_client import embed_texts
-from src.rag.chunker import chunk_text
+from src.rag.chunker import chunk_pages
+from src.rag.document import DocumentChunk, PdfPage
 from src.rag.retriever import rank_chunks_by_similarity
 from src.rag.task_intent import TaskIntent, classify_task_intent
 
@@ -15,7 +16,9 @@ class DocumentIndex:
     The raw chunks are kept for display and prompt construction. The embeddings
     are kept separately because retrieval works on vectors, not text.
     """
-    chunks: list[str]
+    document_id: str
+    filename: str
+    chunks: list[DocumentChunk]
     embeddings: list[list[float]]
 
 
@@ -28,26 +31,35 @@ class QuestionContext:
     task_intent: TaskIntent
     context_strategy: str
     query_embedding: list[float]
-    retrieved_chunks: list[tuple[str, float | None]]
+    retrieved_chunks: list[tuple[DocumentChunk, float | None]]
     answer_prompt: str
 
 
 def build_document_index(
-    text: str,
+    pages: list[PdfPage],
+    document_id: str,
+    filename: str,
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
 ) -> DocumentIndex:
     """
-    Build a searchable document index from extracted PDF text.
+    Build a searchable document index from page-aware PDF text.
     """
-    chunks = chunk_text(
-        text,
+    chunks = chunk_pages(
+        pages,
+        document_id=document_id,
+        filename=filename,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
     )
-    embeddings = embed_texts(chunks)
+    embeddings = embed_texts([chunk.text for chunk in chunks])
 
-    return DocumentIndex(chunks=chunks, embeddings=embeddings)
+    return DocumentIndex(
+        document_id=document_id,
+        filename=filename,
+        chunks=chunks,
+        embeddings=embeddings,
+    )
 
 
 def build_question_context(
@@ -63,7 +75,7 @@ def build_question_context(
     cleaned_question = question.strip()
     task_intent = classify_task_intent(cleaned_question)
     query_embedding = embed_texts([cleaned_question])[0]
-    retrieved_chunks: list[tuple[str, float | None]]
+    retrieved_chunks: list[tuple[DocumentChunk, float | None]]
 
     if task_intent == TaskIntent.STUDY_TRANSFORMATION:
         context_strategy = "broad_document_context"

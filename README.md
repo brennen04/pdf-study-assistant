@@ -157,7 +157,8 @@ The immediate focus is page-aware PDF evidence, coverage-aware long-document
 summaries, a versioned evaluation suite, and CI checks. Persistence and database
 work should follow stable application models rather than define them too early.
 
-Current evidence gap: the app has structured answer and trace models, but the
-evaluation report and page-level citation experience are still being built. Until
-Google grounding metadata is extracted from provider responses, web citations
-should be treated as experimental rather than equivalent to verified PDF evidence.
+Current evidence gap: the app has structured answer and page-level PDF citation
+models, but the evaluation report and measured improvement evidence are still being
+built. Until Google grounding metadata is extracted from provider responses, web
+citations should be treated as experimental rather than equivalent to verified PDF
+evidence.

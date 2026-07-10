@@ -7,9 +7,14 @@ import streamlit as st
 from src.answer.errors import map_answer_generation_error
 from src.answer.parser import AnswerParseError, parse_answer_output
 from src.answer.result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
-from src.answer.validation import AnswerValidationError, validate_pdf_source_numbers
+from src.answer.validation import (
+    AnswerValidationError,
+    MissingPdfSourceReferenceError,
+    validate_pdf_source_numbers,
+)
 from src.providers.gemini_client import DEFAULT_GEMINI_MODEL, generate_answer
-from src.rag.pdf_loader import extract_text_from_pdf
+from src.rag.document import PdfPage
+from src.rag.pdf_loader import extract_pages_from_pdf
 from src.rag.pipeline import (
     DocumentIndex,
     QuestionContext,
@@ -27,13 +32,21 @@ from src.streamlit_app.state import (
 
 
 @st.cache_data(show_spinner=False)
-def extract_text_from_pdf_bytes(file_bytes: bytes) -> str:
-    return extract_text_from_pdf(BytesIO(file_bytes))
+def extract_pages_from_pdf_bytes(file_bytes: bytes) -> list[PdfPage]:
+    return extract_pages_from_pdf(BytesIO(file_bytes))
 
 
 @st.cache_data(show_spinner=False)
-def get_document_index(text: str) -> DocumentIndex:
-    return build_document_index(text)
+def get_document_index(
+    pages: list[PdfPage],
+    document_id: str,
+    filename: str,
+) -> DocumentIndex:
+    return build_document_index(
+        pages,
+        document_id=document_id,
+        filename=filename,
+    )
 
 
 def get_question_context(
@@ -61,7 +74,8 @@ def load_current_document() -> tuple[str, DocumentIndex] | None:
         return loaded_document.extracted_text, loaded_document.document_index
 
     with st.spinner("Reading PDF..."):
-        extracted_text = extract_text_from_pdf_bytes(current_pdf.file_bytes)
+        pages = extract_pages_from_pdf_bytes(current_pdf.file_bytes)
+        extracted_text = "\n\n".join(page.text for page in pages)
 
     if not extracted_text.strip():
         st.warning(
@@ -70,7 +84,11 @@ def load_current_document() -> tuple[str, DocumentIndex] | None:
         return None
 
     with st.spinner("Preparing searchable PDF index..."):
-        document_index = get_document_index(extracted_text)
+        document_index = get_document_index(
+            pages,
+            document_id=current_pdf.file_hash,
+            filename=current_pdf.file_name,
+        )
 
     remember_loaded_document(
         extracted_text=extracted_text,
@@ -162,6 +180,23 @@ def generate_answer_once(
                         model_call=model_call,
                         error=AnswerError(
                             code="unparseable_model_output",
+                            message=str(error),
+                            details=answer,
+                        ),
+                    )
+                )
+            except MissingPdfSourceReferenceError as error:
+                remember_answer_result(
+                    AnswerResult(
+                        question=question_context.question,
+                        pdf_answer=None,
+                        internet_supplement=None,
+                        sources=build_retrieved_sources(
+                            question_context.retrieved_chunks
+                        ),
+                        model_call=model_call,
+                        error=AnswerError(
+                            code="missing_pdf_source_reference",
                             message=str(error),
                             details=answer,
                         ),

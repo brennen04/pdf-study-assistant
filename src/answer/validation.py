@@ -8,6 +8,10 @@ class AnswerValidationError(ValueError):
     """
 
 
+class MissingPdfSourceReferenceError(AnswerValidationError):
+    """Raised when a PDF answer does not identify any retrieved evidence."""
+
+
 def validate_pdf_source_numbers(
     parsed_answer: ParsedAnswer,
     sources: list[RetrievedSource],
@@ -15,6 +19,11 @@ def validate_pdf_source_numbers(
     """
     Ensure cited PDF source numbers refer to retrieved PDF sources.
     """
+    if not parsed_answer.pdf_source_numbers:
+        raise MissingPdfSourceReferenceError(
+            "Model output must cite at least one retrieved PDF source."
+        )
+
     valid_source_numbers = {source.source_number for source in sources}
     invalid_source_numbers = [
         source_number

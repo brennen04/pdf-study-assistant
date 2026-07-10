@@ -1,12 +1,17 @@
+from typing import TypeVar
+
 import numpy as np
+
+
+ChunkT = TypeVar("ChunkT")
 
 
 def rank_chunks_by_similarity(
     query_embedding: list[float],
     chunk_embeddings: list[list[float]],
-    chunks: list[str],
+    chunks: list[ChunkT],
     top_k: int = 3,
-) -> list[tuple[str, float]]:
+) -> list[tuple[ChunkT, float]]:
     """
     Rank text chunks by cosine similarity to the query embedding.
 

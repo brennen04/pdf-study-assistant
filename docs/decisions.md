@@ -275,6 +275,9 @@ Tradeoff:
 Mitigation:
 
 - keep the metadata in explicit application objects
+- keep chunks page-bounded so a citation always points to one auditable PDF page
+- require every successful PDF answer to cite at least one retrieved PDF source,
+  including when an internet supplement is enabled
 - show citations such as `Lecture 3, page 12, chunk 2` with a short excerpt
 - keep `/study` readable and expose the detailed mapping on `/logic`
 
@@ -303,6 +306,13 @@ Mitigation:
 - begin with a small local dataset of representative PDFs and 20-30 questions
 - publish baseline and post-change results in `docs/evaluation.md`
 - keep LLM-as-judge optional until deterministic checks are stable
+
+Implementation note: begin with versioned original page-aware fixtures for the
+deterministic retrieval baseline. Add external PDF fixtures only after their reuse
+terms and stable source handling are documented.
+
+Baseline note: the first run exposed first-eight-chunk summary coverage and an
+over-broad study-transformation intent rule as measurable improvement targets.
 
 ## Map Provider Failures To Stable Answer Errors
 

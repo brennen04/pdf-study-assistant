@@ -1,9 +1,10 @@
 from src.rag.task_intent import TaskIntent
+from src.rag.document import DocumentChunk
 
 
 def build_grounded_answer_prompt(
     question: str,
-    retrieved_chunks: list[tuple[str, float | None]],
+    retrieved_chunks: list[tuple[DocumentChunk, float | None]],
     internet_context_enabled: bool = False,
     web_context: list[str] | None = None,
     task_intent: TaskIntent = TaskIntent.FACTUAL_LOOKUP,
@@ -32,7 +33,8 @@ def build_grounded_answer_prompt(
             else "broad document context"
         )
         context_sections.append(
-            f"Source {index} ({source_label}):\n{chunk.strip()}"
+            f"Source {index} ({chunk.filename}, page {chunk.page_number}, "
+            f"chunk {chunk.chunk_id}; {source_label}):\n{chunk.text.strip()}"
         )
 
     context = "\n\n".join(context_sections)
@@ -88,8 +90,9 @@ Rules:
     "web_citations": ["Web citation or URL when available"],
     "disagreement_note": "PDF/internet disagreement, or null when there is no disagreement."
   }}
-- Only list PDF source numbers that appear in the PDF context above.
-- If no PDF source number is appropriate, set pdf_source_numbers to [].
+- Always include one or more PDF source numbers from the PDF context above.
+- This rule still applies when internet context is enabled. The Internet supplement
+  must not replace the PDF evidence for pdf_answer.
 - When internet context is enabled, internet_supplement must be a non-empty string. If web search adds no useful information, say that clearly in internet_supplement.
 - When internet context is disabled, internet_supplement must be null.
 - Keep web citations empty unless internet context provides citation information.

@@ -1,3 +1,6 @@
+from src.rag.document import DocumentChunk, PdfPage
+
+
 def chunk_text(
     text: str,
     chunk_size: int = 1000,
@@ -39,5 +42,37 @@ def chunk_text(
             chunks.append(chunk)
 
         start += chunk_size - chunk_overlap
+
+    return chunks
+
+
+def chunk_pages(
+    pages: list[PdfPage],
+    document_id: str,
+    filename: str,
+    chunk_size: int = 1000,
+    chunk_overlap: int = 200,
+) -> list[DocumentChunk]:
+    """Split each readable page into independently citable chunks."""
+    chunks: list[DocumentChunk] = []
+
+    for page in pages:
+        for chunk_id, text in enumerate(
+            chunk_text(
+                page.text,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+            ),
+            start=1,
+        ):
+            chunks.append(
+                DocumentChunk(
+                    document_id=document_id,
+                    filename=filename,
+                    page_number=page.page_number,
+                    chunk_id=chunk_id,
+                    text=text,
+                )
+            )
 
     return chunks
