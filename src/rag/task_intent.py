@@ -9,7 +9,7 @@ class TaskIntent(StrEnum):
     STUDY_TRANSFORMATION = "study_transformation"
 
 
-STUDY_TRANSFORMATION_KEYWORDS = (
+STUDY_TRANSFORMATION_PHRASES = (
     "summarise",
     "summarize",
     "summary",
@@ -19,13 +19,11 @@ STUDY_TRANSFORMATION_KEYWORDS = (
     "flashcard",
     "flashcards",
     "study guide",
-    "explain",
     "simplify",
     "teach me",
     "key points",
     "main ideas",
     "takeaways",
-    "how to",
     "what is this about",
     "what's this about",
     "what is it about",
@@ -42,7 +40,7 @@ def classify_task_intent(question: str) -> TaskIntent:
     """
     normalized_question = question.strip().lower()
 
-    if any(keyword in normalized_question for keyword in STUDY_TRANSFORMATION_KEYWORDS):
+    if any(phrase in normalized_question for phrase in STUDY_TRANSFORMATION_PHRASES):
         return TaskIntent.STUDY_TRANSFORMATION
 
     return TaskIntent.FACTUAL_LOOKUP

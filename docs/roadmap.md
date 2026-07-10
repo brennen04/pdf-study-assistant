@@ -94,9 +94,11 @@ PDF evidence.
 ### 4. Improve And Re-measure
 
 - replace first-chunk summary behavior with page/section-aware coverage
-- use multi-pass summarization for long documents when the baseline shows a need
+- narrow transformation intent routing so factual questions remain semantic lookups
 - compare post-change results with the baseline and keep the change only when the
   evidence supports it
+- use multi-pass summarization only if reviewed long-document summary quality still
+  needs it
 
 ### 5. CI And Public Proof
 
@@ -201,6 +203,6 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Use the published baseline to design a coverage-aware long-document summary flow and
-narrow the study-transformation intent rule for factual questions that use words such
-as `explain`. Re-run the same evaluation dataset before keeping either change.
+Review a small set of real Gemini answers for faithfulness, PDF citation usefulness,
+unsupported-question handling, and PDF/web separation. Push the configured CI workflow,
+then update the README with the remote check result and final public-demo proof.

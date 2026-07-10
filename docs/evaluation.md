@@ -35,7 +35,10 @@ Citation validity is enforced through deterministic application tests: a success
 PDF answer must cite at least one retrieved PDF source, and every cited source number
 must refer to retrieved evidence.
 
-## Baseline Results
+GitHub Actions runs the same command with `--require-perfect`, so CI fails if any
+scored retrieval case regresses.
+
+## Before: Baseline Results
 
 Baseline run: 2026-07-10, using the cached configured local embedding model.
 
@@ -60,13 +63,43 @@ Two cases failed:
    routes it to the broad-context strategy. That confirms the current intent classifier
    is too broad for some factual questions.
 
-These failures establish the next improvement targets: coverage-aware long-document
-summaries and a narrower study-transformation intent rule. Re-run this same dataset
-after each change and compare the results before keeping the new behavior.
+## After: Coverage-Aware Retrieval Results
+
+After replacing first-eight-chunk selection with ordered coverage-aware selection and
+removing the bare `explain` transformation trigger, the same command produced:
+
+| Metric | Before | After |
+| --- | ---: | ---: |
+| Scored retrieval cases | 17 | 17 |
+| Passed retrieval cases | 15 | 17 |
+| Retrieval hit rate | 88.24% | 100.00% |
+| Average question-context latency | 0.011 seconds | 0.0106 seconds |
+
+Both previously failing cases now pass:
+
+- `long-summary` receives coverage that includes pages 1, 6, and 12.
+- `long-transparency` uses semantic top-k retrieval and finds page 12.
+
+This demonstrates an improvement to deterministic context selection and intent routing.
+It does not yet claim that final Gemini summaries are more faithful or more helpful;
+that remains a reviewed criterion below.
 
 ## Reviewed Criteria
 
-The first model-dependent review will assess:
+Run this small manual review against a real text-based PDF in the app before making a
+public faithfulness claim. Do not commit a private uploaded PDF or raw model output.
+
+| Scenario | What to check |
+| --- | --- |
+| Factual lookup | Answer is faithful and cited pages support it. |
+| Factual `explain` question | Semantic retrieval finds the relevant later page. |
+| Summary / main ideas | Answer covers early, middle, and late material. |
+| Unsupported question | Answer says the PDF lacks evidence rather than inventing it. |
+| Internet context on | Web supplement remains separate from the PDF answer. |
+| Internet context off | No web content or web citations appear. |
+
+Record only an aggregate pass/fail count and concise limitations in this document.
+The review assesses:
 
 - PDF-answer faithfulness
 - unsupported-question handling

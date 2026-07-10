@@ -11,6 +11,8 @@ short_description: PDF-grounded RAG study assistant with optional internet conte
 
 # PDF Study Assistant
 
+[![Test and evaluate](https://github.com/brennen04/pdf-study-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/brennen04/pdf-study-assistant/actions/workflows/ci.yml)
+
 PDF Study Assistant is a Streamlit-based Retrieval-Augmented Generation (RAG)
 study tool and public portfolio demo.
 

@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import patch
 
 from evals.dataset import CASES, DOCUMENTS
+from evals.run_retrieval import main
 from src.evaluation.models import EvaluationCase
 from src.evaluation.retrieval import build_retrieval_report, score_retrieval_case
 from src.rag.document import DocumentChunk
@@ -99,3 +101,17 @@ class RetrievalEvaluationTests(unittest.TestCase):
         self.assertEqual(report.unsupported_case_count, 1)
         self.assertEqual(report.retrieval_hit_rate, 1.0)
         self.assertIsNone(report.average_latency_seconds)
+
+    def test_require_perfect_fails_when_a_scored_case_is_not_passing(self):
+        report = {
+            "passed_case_count": 16,
+            "scored_case_count": 17,
+        }
+
+        with (
+            patch("evals.run_retrieval.run", return_value=report),
+            patch("sys.argv", ["run_retrieval", "--require-perfect"]),
+            patch("builtins.print"),
+            self.assertRaisesRegex(SystemExit, "16/17"),
+        ):
+            main()

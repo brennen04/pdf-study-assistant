@@ -1,3 +1,4 @@
+import argparse
 import json
 from dataclasses import asdict
 from time import perf_counter
@@ -45,8 +46,18 @@ def run() -> dict:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run the deterministic retrieval evaluation baseline."
+    )
+    parser.add_argument(
+        "--require-perfect",
+        action="store_true",
+        help="Fail when any scored retrieval case does not pass.",
+    )
+    arguments = parser.parse_args()
+
     try:
-        print(json.dumps(run(), indent=2))
+        report = run()
     except Exception as error:
         raise SystemExit(
             "Retrieval baseline could not run because the project embedding model "
@@ -54,6 +65,17 @@ def main() -> None:
             "command. Original error: "
             f"{error}"
         ) from error
+
+    print(json.dumps(report, indent=2))
+
+    if arguments.require_perfect and (
+        report["passed_case_count"] != report["scored_case_count"]
+    ):
+        raise SystemExit(
+            "Retrieval evaluation did not meet the required benchmark: "
+            f"{report['passed_case_count']}/{report['scored_case_count']} scored "
+            "cases passed."
+        )
 
 
 if __name__ == "__main__":

@@ -28,6 +28,18 @@ class TaskIntentTests(unittest.TestCase):
             TaskIntent.FACTUAL_LOOKUP,
         )
 
+    def test_classifies_factual_explain_question_as_lookup(self):
+        self.assertEqual(
+            classify_task_intent("What should transparent communication explain?"),
+            TaskIntent.FACTUAL_LOOKUP,
+        )
+
+    def test_classifies_main_ideas_explanation_as_study_transformation(self):
+        self.assertEqual(
+            classify_task_intent("Explain the main ideas in this document."),
+            TaskIntent.STUDY_TRANSFORMATION,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

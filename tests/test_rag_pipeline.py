@@ -53,16 +53,15 @@ class RagPipelineTests(unittest.TestCase):
         self.assertIn("What matters?", question_context.answer_prompt)
         self.assertIn("Google Search grounding", question_context.answer_prompt)
 
-    def test_build_question_context_uses_broad_context_for_study_transformation(self):
+    def test_build_question_context_uses_coverage_aware_context_for_study_transformation(self):
         document_index = DocumentIndex(
             document_id="document-1",
             filename="lecture.pdf",
             chunks=[
-                DocumentChunk("document-1", "lecture.pdf", 1, 1, "intro"),
-                DocumentChunk("document-1", "lecture.pdf", 2, 1, "middle"),
-                DocumentChunk("document-1", "lecture.pdf", 3, 1, "ending"),
+                DocumentChunk("document-1", "lecture.pdf", page, 1, f"page {page}")
+                for page in range(1, 13)
             ],
-            embeddings=[[1.0], [0.5], [0.2]],
+            embeddings=[[1.0] for _page in range(1, 13)],
         )
 
         with (
@@ -72,20 +71,20 @@ class RagPipelineTests(unittest.TestCase):
             question_context = build_question_context(
                 question="Summarise this document.",
                 document_index=document_index,
-                transformation_context_chunks=2,
+                transformation_context_chunks=8,
             )
 
         self.assertEqual(
             question_context.task_intent,
             TaskIntent.STUDY_TRANSFORMATION,
         )
-        self.assertEqual(question_context.context_strategy, "broad_document_context")
         self.assertEqual(
-            question_context.retrieved_chunks,
-            [
-                (DocumentChunk("document-1", "lecture.pdf", 1, 1, "intro"), None),
-                (DocumentChunk("document-1", "lecture.pdf", 2, 1, "middle"), None),
-            ],
+            question_context.context_strategy,
+            "coverage_aware_document_context",
+        )
+        self.assertEqual(
+            [chunk.page_number for chunk, _score in question_context.retrieved_chunks],
+            [1, 3, 4, 6, 7, 9, 10, 12],
         )
         self.assertIn(
             "Source 1 (lecture.pdf, page 1, chunk 1; broad document context)",

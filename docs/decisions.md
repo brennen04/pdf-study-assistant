@@ -84,8 +84,12 @@ Mitigation:
 
 - use semantic top-k retrieval for factual lookup questions
 - use deterministic task-intent routing for study transformation requests
-- use broad document context for study transformations as the first simple
-  strategy, while treating first-chunk coverage as a temporary baseline
+- use coverage-aware document context for study transformations, selecting ordered
+  chunks across the full document within the existing prompt budget
+- reserve multi-pass summarization for a later step if reviewed summary quality still
+  needs it after coverage-aware selection
+- treat factual questions as lookup by default; a bare word such as `explain` is not
+  enough to route a question away from semantic retrieval
 - when internet context is enabled, ask for a separate expansion with broader
   background, examples, related concepts, caveats, or current context
 - improve broad context later with section-aware context or future multi-pass
@@ -311,8 +315,13 @@ Implementation note: begin with versioned original page-aware fixtures for the
 deterministic retrieval baseline. Add external PDF fixtures only after their reuse
 terms and stable source handling are documented.
 
-Baseline note: the first run exposed first-eight-chunk summary coverage and an
-over-broad study-transformation intent rule as measurable improvement targets.
+Improvement note: coverage-aware selection and narrower transformation phrases improved
+the deterministic retrieval baseline from 15/17 to 17/17 scored cases without adding
+model calls. Reviewed answer quality remains the next evidence boundary.
+
+CI note: cache the configured embedding model, then run the retrieval benchmark in
+local-only mode with a required 17/17 scored-case result. This keeps the CI check
+meaningful without making the benchmark itself depend on a live model download.
 
 ## Map Provider Failures To Stable Answer Errors
 

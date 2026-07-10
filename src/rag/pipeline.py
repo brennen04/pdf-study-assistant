@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from src.answer.builder import build_grounded_answer_prompt
 from src.providers.embedding_client import embed_texts
 from src.rag.chunker import chunk_pages
+from src.rag.context_selection import select_coverage_chunks
 from src.rag.document import DocumentChunk, PdfPage
 from src.rag.retriever import rank_chunks_by_similarity
 from src.rag.task_intent import TaskIntent, classify_task_intent
@@ -78,10 +79,13 @@ def build_question_context(
     retrieved_chunks: list[tuple[DocumentChunk, float | None]]
 
     if task_intent == TaskIntent.STUDY_TRANSFORMATION:
-        context_strategy = "broad_document_context"
+        context_strategy = "coverage_aware_document_context"
         retrieved_chunks = [
             (chunk, None)
-            for chunk in document_index.chunks[:transformation_context_chunks]
+            for chunk in select_coverage_chunks(
+                document_index.chunks,
+                max_chunks=transformation_context_chunks,
+            )
         ]
     else:
         context_strategy = "semantic_top_k"

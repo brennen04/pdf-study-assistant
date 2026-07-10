@@ -1,0 +1,43 @@
+name: Test and evaluate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Restore embedding model cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: huggingface-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Cache the configured embedding model
+        run: python -c "from src.providers.embedding_client import get_embedding_model; get_embedding_model()"
+
+      - name: Compile source and tests
+        run: python -m compileall app.py src tests evals
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Run deterministic retrieval evaluation
+        env:
+          EMBEDDING_MODEL_LOCAL_ONLY: "true"
+        run: python -m evals.run_retrieval --require-perfect
