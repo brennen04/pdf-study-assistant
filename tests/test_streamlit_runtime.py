@@ -34,9 +34,68 @@ class GenerateAnswerOnceTests(unittest.TestCase):
 
         answer_result = remember_result.call_args.args[0]
         self.assertEqual(answer_result.question, "What does the PDF say?")
-        self.assertEqual(answer_result.error.message, "provider unavailable")
-        self.assertEqual(answer_result.error.code, "RuntimeError")
+        self.assertEqual(answer_result.error.code, "provider_unavailable")
+        self.assertIn("model provider", answer_result.error.message)
+        self.assertEqual(answer_result.error.details, "RuntimeError('provider unavailable')")
         self.assertIsNone(answer_result.model_call.raw_output)
+        remember_key.assert_not_called()
+
+    def test_maps_missing_api_key_to_stable_error_code(self):
+        question_context = QuestionContext(
+            question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
+            query_embedding=[1.0],
+            retrieved_chunks=[("PDF context", 0.9)],
+            answer_prompt="Answer from this PDF context.",
+        )
+
+        with (
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
+            patch(
+                "src.streamlit_app.runtime.generate_answer",
+                side_effect=ValueError("LLM API key is missing."),
+            ),
+            patch(
+                "src.streamlit_app.runtime.remember_answer_result"
+            ) as remember_result,
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
+        ):
+            generate_answer_once(question_context, use_google_search=False)
+
+        answer_result = remember_result.call_args.args[0]
+        self.assertEqual(answer_result.error.code, "missing_api_key")
+        self.assertIn("model API key", answer_result.error.message)
+        remember_key.assert_not_called()
+
+    def test_maps_empty_model_response_to_stable_error_code(self):
+        question_context = QuestionContext(
+            question="What does the PDF say?",
+            task_intent=TaskIntent.FACTUAL_LOOKUP,
+            context_strategy="semantic_top_k",
+            query_embedding=[1.0],
+            retrieved_chunks=[("PDF context", 0.9)],
+            answer_prompt="Answer from this PDF context.",
+        )
+
+        with (
+            patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
+            patch(
+                "src.streamlit_app.runtime.generate_answer",
+                side_effect=ValueError("Gemini returned an empty response."),
+            ),
+            patch(
+                "src.streamlit_app.runtime.remember_answer_result"
+            ) as remember_result,
+            patch("src.streamlit_app.runtime.remember_answer_cache_key") as remember_key,
+            patch("src.streamlit_app.runtime.st.spinner", return_value=nullcontext()),
+        ):
+            generate_answer_once(question_context, use_google_search=False)
+
+        answer_result = remember_result.call_args.args[0]
+        self.assertEqual(answer_result.error.code, "empty_model_response")
+        self.assertIn("empty answer", answer_result.error.message)
         remember_key.assert_not_called()
 
     def test_stores_successful_answer_result_and_cache_key(self):

@@ -55,6 +55,18 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
         self.assertIn("Task intent:\nstudy_transformation", prompt)
         self.assertIn("Source 1 (broad document context)", prompt)
 
+    def test_separates_web_citations_from_broad_context_summary_text(self):
+        prompt = build_grounded_answer_prompt(
+            question="Summarise this PDF.",
+            retrieved_chunks=[("PDF source.", None)],
+            internet_context_enabled=True,
+            task_intent=TaskIntent.STUDY_TRANSFORMATION,
+        )
+
+        self.assertIn("Source 1 (broad document context)", prompt)
+        self.assertIn("Do not write inline web citation markers", prompt)
+        self.assertIn("Put web sources only in web_citations", prompt)
+
     def test_rejects_empty_question(self):
         with self.assertRaisesRegex(ValueError, "question"):
             build_grounded_answer_prompt(" ", [("chunk", 0.5)])
