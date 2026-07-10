@@ -77,7 +77,8 @@ After the Space builds:
 3. Confirm the document index prepares successfully.
 4. Ask a question.
 5. Confirm the answer is PDF-grounded.
-6. Enable internet context and confirm any web information remains separate.
+6. Enable internet context and confirm the answer includes a separate web-based
+   expansion.
 7. Open `/logic` and confirm extracted text, chunks, sources, prompt, and answer metadata are inspectable.
 
 ## Caveats

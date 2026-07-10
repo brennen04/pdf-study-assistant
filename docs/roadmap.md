@@ -27,7 +27,9 @@ Source boundaries always visible.
 
 This keeps the PDF as the primary authority while allowing study
 transformations, such as summaries or notes, to synthesize from the document
-instead of looking for pre-written summaries inside it.
+instead of looking for pre-written summaries inside it. When internet context is
+enabled, the app should add a separate web-based expansion that can add outside
+context and fill gaps in the PDF answer.
 
 ## Current Milestone: Error Boundaries
 
@@ -81,7 +83,7 @@ Make answer boundaries clearer:
 
 - PDF answer
 - PDF chunks used
-- internet supplement
+- internet supplement as a distinct web-based expansion
 - readable web citations
 - disagreements between PDF and internet context
 

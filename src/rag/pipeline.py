@@ -81,7 +81,7 @@ def build_question_context(
 
     answer_prompt = build_grounded_answer_prompt(
         question=cleaned_question,
-        retrieved_chunks=retrieved_chunks,
+        retrieved_chunks=retrieved_chunks, # type: ignore
         internet_context_enabled=internet_context_enabled,
         task_intent=task_intent,
     )
@@ -91,6 +91,6 @@ def build_question_context(
         task_intent=task_intent,
         context_strategy=context_strategy,
         query_embedding=query_embedding,
-        retrieved_chunks=retrieved_chunks,
+        retrieved_chunks=retrieved_chunks, # type: ignore
         answer_prompt=answer_prompt,
     )

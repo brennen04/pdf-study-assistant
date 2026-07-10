@@ -13,9 +13,10 @@ Internet-supplemented only when requested.
 Source boundaries always visible.
 ```
 
-The uploaded PDF is the primary authority. Internet context may be added only as
-a clearly separated supplement, and disagreement between PDF and internet
-sources should be surfaced instead of blended.
+The uploaded PDF is the primary authority. When internet context is requested,
+the app should add a clearly separated web-based expansion that can add outside
+context and fill gaps in the PDF answer, and disagreement between PDF and
+internet sources should be surfaced instead of blended.
 
 PDF-grounded answers have two important shapes:
 
@@ -64,6 +65,11 @@ study transformation -> broad document context -> synthesize from PDF
 
 This keeps the product PDF-grounded while allowing different retrieval strategies
 for different study tasks.
+
+When internet context is enabled, the answer result should still keep the PDF
+answer primary, but the internet supplement should add distinct outside context,
+such as broader background, examples, related concepts, caveats, or current
+context.
 
 ## Layers
 

@@ -62,13 +62,15 @@ Reason:
 ## PDF-Grounded By Default
 
 Decision: the uploaded PDF is the primary authority. Internet context is optional
-and should appear only as a clearly separated supplement when requested. Source
-boundaries must remain visible.
+and should appear only as a clearly separated supplement when requested. When
+requested, it should add a distinct web-based expansion that can add outside
+context and fill gaps in the PDF answer. Source boundaries must remain visible.
 
 Reason:
 
 - the product is a PDF study assistant, not a general web-search chatbot
 - the user should be able to distinguish document-grounded information from external information
+- users who enable internet context expect a visible web-based addition
 - disagreements between the PDF and internet sources should be visible instead of blended
 - study transformations such as summaries, notes, outlines, explanations, and
   flashcards should synthesize from the PDF instead of requiring that artifact
@@ -84,6 +86,8 @@ Mitigation:
 - use deterministic task-intent routing for study transformation requests
 - use broad document context for study transformations as the first simple
   strategy
+- when internet context is enabled, ask for a separate expansion with broader
+  background, examples, related concepts, caveats, or current context
 - improve broad context later with section-aware context or future multi-pass
   summarization for long documents
 
@@ -247,6 +251,24 @@ Mitigation:
 - keep the original URL as the Markdown link target
 - revisit provider metadata extraction when the Gemini client returns structured
   model-call metadata instead of only response text
+
+## Map Provider Failures To Stable Answer Errors
+
+Decision: convert answer-generation exceptions into stable `AnswerError` codes
+before they reach the Streamlit pages.
+
+Reason:
+
+- `/study` needs public-demo-friendly messages instead of provider internals
+- `/logic` still needs developer details for inspection and debugging
+- tests and future persistence should depend on application error codes, not
+  Python exception class names
+
+Mitigation:
+
+- keep raw exception details on `AnswerError.details`
+- show friendly messages on `/study`
+- show codes and details on `/logic`
 
 ## Do Not Fake Similarity Scores For Broad Context
 
