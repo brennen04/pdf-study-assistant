@@ -31,9 +31,10 @@ instead of looking for pre-written summaries inside it. When internet context is
 enabled, the app should add a separate web-based expansion that can add outside
 context and fill gaps in the PDF answer.
 
-## Current Milestone: Error Boundaries
+## Completed Foundation: Error Boundaries
 
-Status: in progress.
+Status: core answer-generation boundary complete; document-preparation and
+retrieval edge cases remain follow-up work.
 
 Goal: represent expected failures as stable application states before adding
 persistence. The public demo should fail gracefully for recruiters or technical
@@ -58,7 +59,49 @@ Definition of done:
 - `/logic` exposes developer details for debugging and architectural inspection
 - tests cover success and expected failure paths
 
-## Next Milestones
+## Immediate Portfolio Milestone: Evidence And Evaluation
+
+The project’s next definition of done is not another infrastructure component. It
+is evidence that the RAG system became more reliable and more auditable.
+
+### 1. Explicit Submission
+
+- require a Generate answer action before making an LLM call
+- keep `/study` calm and predictable for public users
+- preserve detailed diagnostics and the effective run inputs on `/logic`
+
+### 2. Page-Aware PDF Evidence
+
+- preserve filename, page number, chunk ID, and text through loading, chunking,
+  retrieval, prompts, and answer results
+- render citations such as `Lecture 3, page 12, chunk 2` with a short excerpt
+- validate that cited pages and chunks belong to the retrieved evidence
+
+### 3. Baseline Evaluation
+
+- add a small versioned dataset under `evals/` with representative PDFs and
+  20-30 questions
+- cover factual lookup, study transformations, unsupported questions, and citation
+  behavior
+- measure retrieval hit rate, citation validity, latency, failures, and reviewed
+  faithfulness/summary-coverage criteria
+- publish baseline results and limitations in `docs/evaluation.md`
+
+### 4. Improve And Re-measure
+
+- replace first-chunk summary behavior with page/section-aware coverage
+- use multi-pass summarization for long documents when the baseline shows a need
+- compare post-change results with the baseline and keep the change only when the
+  evidence supports it
+
+### 5. CI And Public Proof
+
+- run unit tests and deterministic evaluation checks on every push
+- add the CI status to the README
+- keep the README focused on the demo, architecture, measured results, and known
+  limitations
+
+## Existing Production Milestones
 
 ### Traceability
 
@@ -127,7 +170,8 @@ a multi-pass summary flow for long documents.
 
 ### Evaluation
 
-Start evaluation before adding orchestration frameworks:
+The immediate evaluation work above supersedes this section’s placement as a
+future milestone. Keep these principles:
 
 1. Create a small local golden dataset with PDFs, questions, expected answer
    traits, expected source behavior, and expected error states.
@@ -145,7 +189,7 @@ Keep these as future options until the product needs them:
 
 - backend API service, likely FastAPI
 - persisted embeddings or vector database
-- CI/CD and deployment hardening
+- broader CI/CD and deployment hardening after the deterministic checks exist
 - OCR for scanned PDFs
 - multi-document workflows
 - cost and latency tracking
@@ -153,5 +197,6 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Classify common failures with stable application error codes, then expose those
-codes through `AnswerError`, `/study`, `/logic`, and focused tests.
+Implement the explicit submission boundary, then preserve page-aware PDF metadata
+through the smallest end-to-end citation slice. Capture a baseline evaluation
+before changing long-document summary behavior.

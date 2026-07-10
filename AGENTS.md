@@ -5,8 +5,13 @@ Guidance for Codex and other coding agents working in this repository.
 ## Project Context
 
 PDF Study Assistant is a Streamlit RAG study tool. It is a public portfolio demo, but
-the target is production-shaped readiness: memory, traceability, debugging support,
-evaluation, and user history.
+the target is production-shaped readiness: evidence-grade traceability, debugging
+support, evaluation, memory, and user history.
+
+The portfolio standard is to demonstrate measurable improvement to an AI system,
+not simply accumulate frameworks or features. A feature is not complete when it is
+only implemented; it should be inspectable, tested, and evaluated when its quality
+can be measured.
 
 Core product rule:
 
@@ -63,6 +68,11 @@ Prefer small, focused changes that keep the app working after each step.
   around reusable logic.
 - Make important application data explicit instead of hiding it inside raw
   strings.
+- Preserve evidence through the pipeline. Chunks and retrieved sources should keep
+  document identity, page number, chunk identity, and text where the source format
+  supports them.
+- Establish a baseline before changing retrieval or summarization behavior, then
+  record whether the change improved the relevant evaluation result.
 - Do not add infrastructure before the application model needs it.
 - Update public docs only when setup, dependencies, user-visible behavior,
   architecture, or durable decisions change. Do not create extra documentation
@@ -87,13 +97,18 @@ for concepts such as:
 Future persistence should follow these application models instead of defining
 the model too early through database tables.
 
+The immediate architecture priority is evidence-grade PDF RAG: page-aware chunks,
+useful PDF citations, coverage-aware long-document summaries, and a small versioned
+evaluation suite. Persistence, vector databases, and orchestration frameworks are
+later options, not current goals.
+
 ## Verification
 
 Run lightweight checks after code changes:
 
 ```powershell
-python -m compileall app.py src tests
-python -m unittest discover -s tests
+.\venv\Scripts\python.exe -m compileall app.py src tests
+.\venv\Scripts\python.exe -m unittest discover -s tests
 ```
 
 As the project grows, add tests around pure logic first: chunking, retrieval,

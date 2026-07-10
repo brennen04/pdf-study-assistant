@@ -35,16 +35,16 @@ separate from PDF-grounded content.
 
 ## What The App Does
 
-Current user flow:
+Target user flow for the immediate portfolio milestone:
 
 1. Upload a text-based PDF.
-2. Extract readable text.
-3. Split the text into chunks.
+2. Extract readable text while retaining document/page metadata.
+3. Split the text into page-aware chunks.
 4. Embed the chunks locally.
 5. Retrieve relevant PDF chunks for a question.
-6. Generate a PDF-grounded answer with Gemini.
+6. Generate a PDF-grounded answer with Gemini after an explicit user submission.
 7. If requested, add a clearly separated internet expansion.
-8. Show PDF sources and readable web citation links for traceability.
+8. Show useful PDF citations and readable web citation links with source boundaries.
 
 The app has two Streamlit pages:
 
@@ -152,6 +152,12 @@ Implemented:
 - `/study` and `/logic` pages for user flow and architecture inspection
 - Streamlit state/runtime/page separation and Hugging Face Spaces Docker setup
 
-Current production-oriented milestone: strengthen public-demo-ready error
-boundaries before persistence. Database work should follow stable application
-models rather than define them too early.
+Current portfolio milestone: prove measurable improvement to the RAG system.
+The immediate focus is page-aware PDF evidence, coverage-aware long-document
+summaries, a versioned evaluation suite, and CI checks. Persistence and database
+work should follow stable application models rather than define them too early.
+
+Current evidence gap: the app has structured answer and trace models, but the
+evaluation report and page-level citation experience are still being built. Until
+Google grounding metadata is extracted from provider responses, web citations
+should be treated as experimental rather than equivalent to verified PDF evidence.

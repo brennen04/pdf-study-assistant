@@ -29,7 +29,7 @@ Mitigation:
 - keep Streamlit thin and reusable behavior in `src/`
 - prefer explicit application objects over raw strings at important boundaries
 - document durable decisions, not routine implementation notes
-- prioritize public-demo-ready error handling before persistence or heavier
+- prioritize evidence-grade citations and evaluation before persistence or heavier
   infrastructure
 
 ## Use `.env.example` And Ignore `.env`
@@ -85,7 +85,7 @@ Mitigation:
 - use semantic top-k retrieval for factual lookup questions
 - use deterministic task-intent routing for study transformation requests
 - use broad document context for study transformations as the first simple
-  strategy
+  strategy, while treating first-chunk coverage as a temporary baseline
 - when internet context is enabled, ask for a separate expansion with broader
   background, examples, related concepts, caveats, or current context
 - improve broad context later with section-aware context or future multi-pass
@@ -131,21 +131,24 @@ Mitigation:
 - pass explicit application objects across boundaries
 - add tests around reusable logic before expanding UI behavior
 
-## Generate Immediately, But Dedupe LLM Calls
+## Require Explicit Answer Submission
 
-Decision: generate an answer as soon as the user submits a question, without a separate Ask/Generate button.
+Decision: require an explicit Generate answer action before making an LLM call.
 
 Reason:
 
-- this matches the desired user experience
-- the app should feel direct and conversational
+- typing or changing a question should not trigger provider calls
+- explicit submission makes cost, latency, and answer state predictable in a
+  public demo
+- the interaction remains simple while making the user intent unambiguous
 
 Tradeoff:
 
-- Streamlit reruns can accidentally repeat API calls
+- the experience is one deliberate step less conversational
 
 Mitigation:
 
+- use a Streamlit form or equivalent submit boundary
 - store the generated answer in `st.session_state`
 - key the answer by the effective input: prompt plus internet-context setting
 
@@ -227,8 +230,8 @@ Mitigation:
 
 ## Render Grounding Redirects As Readable Citations
 
-Decision: keep raw web citation URLs in answer results, but render Google
-grounding redirect URLs with readable labels in the UI.
+Decision: keep raw web citation URLs in answer results, but treat web citations as
+experimental until provider grounding metadata is extracted and rendered.
 
 Reason:
 
@@ -237,6 +240,7 @@ Reason:
 - those URLs are valid link targets but poor reading material
 - the user needs clear source boundaries without visual noise
 - preserving the original URL keeps traceability and debugging possible
+- model-generated URLs are not equivalent to verified provider grounding records
 
 Tradeoff:
 
@@ -251,6 +255,54 @@ Mitigation:
 - keep the original URL as the Markdown link target
 - revisit provider metadata extraction when the Gemini client returns structured
   model-call metadata instead of only response text
+
+## Make PDF Evidence Page-Aware
+
+Decision: preserve filename, page number, chunk identity, and chunk text with every
+PDF chunk and retrieved source.
+
+Reason:
+
+- numbered prompt sources are difficult for users to audit against the document
+- page-level citations make answers more useful and make retrieval failures visible
+- source metadata is required for meaningful citation-validity evaluation
+
+Tradeoff:
+
+- the loader, chunker, retrieval models, prompts, and source rendering need a
+  coordinated but focused change
+
+Mitigation:
+
+- keep the metadata in explicit application objects
+- show citations such as `Lecture 3, page 12, chunk 2` with a short excerpt
+- keep `/study` readable and expose the detailed mapping on `/logic`
+
+## Evaluate Before And After Retrieval Changes
+
+Decision: create a small versioned evaluation suite before changing retrieval or
+long-document summarization behavior.
+
+Reason:
+
+- a portfolio project should show that an AI system improved, not only that code
+  changed
+- deterministic retrieval and citation checks provide a useful baseline before
+  introducing an LLM judge
+- evaluation discourages adding infrastructure that does not improve outcomes
+
+Initial measurements:
+
+- retrieval hit rate against expected pages or chunks
+- citation validity and unsupported-question behavior
+- answer faithfulness and summary coverage through reviewed criteria
+- latency and recorded failures
+
+Mitigation:
+
+- begin with a small local dataset of representative PDFs and 20-30 questions
+- publish baseline and post-change results in `docs/evaluation.md`
+- keep LLM-as-judge optional until deterministic checks are stable
 
 ## Map Provider Failures To Stable Answer Errors
 
