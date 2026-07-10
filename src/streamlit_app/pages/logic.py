@@ -3,7 +3,13 @@ import streamlit as st
 from src.answer.web_citations import format_web_citation
 from src.streamlit_app.pages.shared import render_current_pdf_status, render_page_header
 from src.streamlit_app.runtime import get_question_context, load_current_document
-from src.streamlit_app.state import get_answer_result, get_current_pdf
+from src.streamlit_app.state import (
+    get_answer_result,
+    get_current_pdf,
+    get_latest_internet_context_enabled,
+    get_latest_question,
+    remember_question_settings,
+)
 
 
 def render_logic_page() -> None:
@@ -56,6 +62,26 @@ def render_logic_page() -> None:
         st.warning("No embeddings were generated.")
 
     st.subheader("Question Pipeline")
+    answer_result = get_answer_result()
+
+    if answer_result is not None:
+        remember_question_settings(
+            question=answer_result.question,
+            internet_context_enabled=answer_result.model_call.use_google_search,
+        )
+        if st.session_state.get("logic_synced_answer_question") != answer_result.question:
+            st.session_state["logic_question"] = answer_result.question
+            st.session_state["logic_internet_context"] = (
+                answer_result.model_call.use_google_search
+            )
+            st.session_state["logic_synced_answer_question"] = answer_result.question
+
+    st.session_state.setdefault(
+        "logic_internet_context",
+        get_latest_internet_context_enabled(),
+    )
+    st.session_state.setdefault("logic_question", get_latest_question())
+
     use_google_search = st.toggle(
         "Internet context for prompt",
         value=False,
@@ -66,6 +92,11 @@ def render_logic_page() -> None:
         "Question to inspect",
         placeholder="What are the main ideas in this PDF?",
         key="logic_question",
+    )
+
+    remember_question_settings(
+        question=question,
+        internet_context_enabled=use_google_search,
     )
 
     if not question.strip():
@@ -103,8 +134,6 @@ def render_logic_page() -> None:
         height=350,
     )
 
-    answer_result = get_answer_result()
-
     if answer_result is None:
         return
 
@@ -114,6 +143,12 @@ def render_logic_page() -> None:
     if answer_result.error:
         st.error(answer_result.error.message)
         st.write(f"Error code: {answer_result.error.code}")
+        if answer_result.error.details:
+            st.text_area(
+                "Error details",
+                answer_result.error.details,
+                height=120,
+            )
     else:
         st.success("Latest answer generated successfully.")
         st.write("PDF source numbers cited:")

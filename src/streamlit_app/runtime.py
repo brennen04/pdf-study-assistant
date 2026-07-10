@@ -4,6 +4,7 @@ from time import perf_counter
 
 import streamlit as st
 
+from src.answer.errors import map_answer_generation_error
 from src.answer.parser import AnswerParseError, parse_answer_output
 from src.answer.result import AnswerError, AnswerResult, ModelCall, build_retrieved_sources
 from src.answer.validation import AnswerValidationError, validate_pdf_source_numbers
@@ -126,11 +127,7 @@ def generate_answer_once(
                         latency_seconds=latency_seconds,
                         raw_output=None,
                     ),
-                    error=AnswerError(
-                        code=type(error).__name__,
-                        message=str(error),
-                        details=repr(error),
-                    ),
+                    error=map_answer_generation_error(error),
                 )
             )
         else:

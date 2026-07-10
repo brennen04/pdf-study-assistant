@@ -7,7 +7,12 @@ from src.streamlit_app.runtime import (
     get_question_context,
     load_current_document,
 )
-from src.streamlit_app.state import get_answer_result
+from src.streamlit_app.state import (
+    get_answer_result,
+    get_latest_internet_context_enabled,
+    get_latest_question,
+    remember_question_settings,
+)
 
 
 def render_study_page() -> None:
@@ -19,6 +24,10 @@ def render_study_page() -> None:
 
     render_upload_control()
 
+    st.session_state.setdefault(
+        "study_internet_context",
+        get_latest_internet_context_enabled(),
+    )
     use_google_search = st.toggle(
         "Internet context",
         value=False,
@@ -38,10 +47,16 @@ def render_study_page() -> None:
 
     _, document_index = loaded_document
 
+    st.session_state.setdefault("study_question", get_latest_question())
     question = st.text_input(
         "Question",
         placeholder="What are the main ideas in this PDF?",
         key="study_question",
+    )
+
+    remember_question_settings(
+        question=question,
+        internet_context_enabled=use_google_search,
     )
 
     if not question.strip():

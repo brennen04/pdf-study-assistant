@@ -15,6 +15,8 @@ EXTRACTED_TEXT_KEY = "extracted_text"
 DOCUMENT_INDEX_KEY = "document_index"
 ANSWER_CACHE_KEY = "answer_cache_key"
 ANSWER_RESULT_KEY = "answer_result"
+LATEST_QUESTION_KEY = "latest_question"
+LATEST_INTERNET_CONTEXT_KEY = "latest_internet_context"
 
 
 @dataclass(frozen=True)
@@ -122,3 +124,19 @@ def remember_answer_result(answer_result: AnswerResult) -> None:
 
 def get_answer_result() -> AnswerResult | None:
     return st.session_state.get(ANSWER_RESULT_KEY)
+
+
+def remember_question_settings(
+    question: str,
+    internet_context_enabled: bool,
+) -> None:
+    st.session_state[LATEST_QUESTION_KEY] = question
+    st.session_state[LATEST_INTERNET_CONTEXT_KEY] = internet_context_enabled
+
+
+def get_latest_question() -> str:
+    return st.session_state.get(LATEST_QUESTION_KEY, "")
+
+
+def get_latest_internet_context_enabled() -> bool:
+    return bool(st.session_state.get(LATEST_INTERNET_CONTEXT_KEY, False))

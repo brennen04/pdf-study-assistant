@@ -93,6 +93,7 @@ Rules:
 - When internet context is enabled, internet_supplement must be a non-empty string. If web search adds no useful information, say that clearly in internet_supplement.
 - When internet context is disabled, internet_supplement must be null.
 - Keep web citations empty unless internet context provides citation information.
+- Do not write inline web citation markers such as "cite 1", "cite 2", or "cite 3" inside pdf_answer or internet_supplement. Put web sources only in web_citations.
 
 Question:
 {cleaned_question}
