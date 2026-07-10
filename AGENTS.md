@@ -16,9 +16,10 @@ Internet-supplemented only when requested.
 Source boundaries always visible.
 ```
 
-The uploaded PDF is the primary authority. Internet information may be added
-only as a clearly separated supplement. If PDF and internet sources disagree,
-surface the disagreement instead of blending the two.
+The uploaded PDF is the primary authority. When internet context is requested,
+add a clearly separated web-based expansion that can add outside context and
+fill gaps in the PDF answer. If PDF and internet sources disagree, surface the
+disagreement instead of blending the two.
 
 PDF-grounded does not mean lookup-only. For study transformations such as
 summaries, notes, outlines, explanations, flashcards, or study guides, synthesize

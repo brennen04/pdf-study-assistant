@@ -28,9 +28,10 @@ Internet-supplemented only when requested.
 Source boundaries always visible.
 ```
 
-The uploaded PDF is the primary authority. Internet context can supplement the
-answer only when requested, and it should remain visibly separate from
-PDF-grounded content.
+The uploaded PDF is the primary authority. When internet context is requested,
+the app should add a separate web-based expansion that can add outside context
+and fill gaps in the PDF answer. Internet information must remain visibly
+separate from PDF-grounded content.
 
 ## What The App Does
 
@@ -42,7 +43,7 @@ Current user flow:
 4. Embed the chunks locally.
 5. Retrieve relevant PDF chunks for a question.
 6. Generate a PDF-grounded answer with Gemini.
-7. Optionally add internet information as a clearly separated supplement.
+7. If requested, add a clearly separated internet expansion.
 8. Show PDF sources and readable web citation links for traceability.
 
 The app has two Streamlit pages:
@@ -147,7 +148,7 @@ Implemented:
 - task-intent routing for lookup versus study transformation requests
 - PDF-grounded prompt construction and Gemini answer generation
 - structured answer results with parsed answer sections, citations, and model-call metadata
-- optional Google Search grounding with visibly separated web context
+- optional Google Search grounding with a visibly separated web expansion
 - `/study` and `/logic` pages for user flow and architecture inspection
 - Streamlit state/runtime/page separation and Hugging Face Spaces Docker setup
 
