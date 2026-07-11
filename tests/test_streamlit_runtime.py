@@ -259,18 +259,19 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             retrieved_chunks=[(pdf_chunk(), 0.9)],
             answer_prompt="Answer from this PDF context.",
         )
+        raw_answer = (
+            '{"pdf_answer": "The PDF says this.", '
+            '"pdf_source_numbers": [], '
+            '"internet_supplement": "The web adds this.", '
+            '"web_citations": ["https://example.com"], '
+            '"disagreement_note": null}'
+        )
 
         with (
             patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
                 "src.streamlit_app.runtime.generate_answer",
-                return_value=(
-                    '{"pdf_answer": "The PDF says this.", '
-                    '"pdf_source_numbers": [], '
-                    '"internet_supplement": "The web adds this.", '
-                    '"web_citations": ["https://example.com"], '
-                    '"disagreement_note": null}'
-                ),
+                return_value=raw_answer,
             ),
             patch(
                 "src.streamlit_app.runtime.remember_answer_result"
@@ -282,7 +283,8 @@ class GenerateAnswerOnceTests(unittest.TestCase):
 
         answer_result = remember_result.call_args.args[0]
         self.assertEqual(answer_result.error.code, "missing_pdf_source_reference")
-        self.assertIn("at least one", answer_result.error.message)
+        self.assertIn("couldn't verify a PDF-grounded answer", answer_result.error.message)
+        self.assertEqual(answer_result.error.details, raw_answer)
         remember_key.assert_not_called()
 
 if __name__ == "__main__":

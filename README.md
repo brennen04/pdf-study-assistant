@@ -128,8 +128,8 @@ belong in local environment variables or deployment secrets.
 Run lightweight checks:
 
 ```powershell
-python -m compileall app.py src tests
-python -m unittest discover -s tests
+.\venv\Scripts\python.exe -m compileall app.py src tests
+.\venv\Scripts\python.exe -m unittest discover -s tests
 ```
 
 ## Project Documentation
@@ -153,14 +153,15 @@ Implemented:
 - optional Google Search grounding with a visibly separated web expansion
 - `/study` and `/logic` pages for user flow and architecture inspection
 - Streamlit state/runtime/page separation and Hugging Face Spaces Docker setup
+- page-aware PDF citations, coverage-aware long-document context, and explicit answer submission
+- versioned retrieval evaluation: 17/17 scored cases pass in CI
+- manual real-PDF review: 6/6 scenarios passed; see `docs/evaluation.md`
 
-Current portfolio milestone: prove measurable improvement to the RAG system.
-The immediate focus is page-aware PDF evidence, coverage-aware long-document
-summaries, a versioned evaluation suite, and CI checks. Persistence and database
-work should follow stable application models rather than define them too early.
+Portfolio V1 demonstrates a measured RAG improvement: coverage-aware context
+selection and narrower intent routing raised the versioned retrieval result from
+15/17 to 17/17 scored cases. Persistence and database work remain later options
+that should follow stable application models.
 
-Current evidence gap: the app has structured answer and page-level PDF citation
-models, but the evaluation report and measured improvement evidence are still being
-built. Until Google grounding metadata is extracted from provider responses, web
-citations should be treated as experimental rather than equivalent to verified PDF
+Known limitation: web citations remain experimental until the app extracts Google
+grounding metadata from provider responses. They are not equivalent to verified PDF
 evidence.

@@ -203,6 +203,8 @@ Keep these as future options until the product needs them:
 
 ## Current Next Step
 
-Review a small set of real Gemini answers for faithfulness, PDF citation usefulness,
-unsupported-question handling, and PDF/web separation. Push the configured CI workflow,
-then update the README with the remote check result and final public-demo proof.
+Portfolio V1 evidence work is complete: CI is green, the deterministic retrieval
+evaluation passes 17/17 scored cases, and the manual real-PDF review passed 6/6
+scenarios. The remaining release work is to commit and push the final documentation
+and unsupported-answer handling, deploy to Hugging Face Spaces, and run the deployment
+smoke test. Add a concise demo screenshot or GIF only if it improves the public README.

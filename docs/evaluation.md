@@ -94,7 +94,7 @@ public faithfulness claim. Do not commit a private uploaded PDF or raw model out
 | Factual lookup | Answer is faithful and cited pages support it. |
 | Factual `explain` question | Semantic retrieval finds the relevant later page. |
 | Summary / main ideas | Answer covers early, middle, and late material. |
-| Unsupported question | Answer says the PDF lacks evidence rather than inventing it. |
+| Unsupported question | Answer says the PDF lacks evidence rather than inventing it, and cites the retrieved excerpts it inspected. |
 | Internet context on | Web supplement remains separate from the PDF answer. |
 | Internet context off | No web content or web citations appear. |
 
@@ -105,6 +105,9 @@ The review assesses:
 - unsupported-question handling
 - separation of PDF answers from internet supplements
 - summary coverage across early, middle, and late pages
+
+Manual review: 6/6 scenarios passed on a text-based software-design PDF.
+Limitations: review was manual and used one document.
 
 LLM-as-judge evaluation is intentionally deferred until the deterministic baseline is
 stable.

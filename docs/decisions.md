@@ -285,6 +285,29 @@ Mitigation:
 - show citations such as `Lecture 3, page 12, chunk 2` with a short excerpt
 - keep `/study` readable and expose the detailed mapping on `/logic`
 
+## Keep Unsupported Answers Grounded And User-Facing Errors Calm
+
+Decision: treat an unsupported question as a valid PDF-grounded outcome only when
+the response cites the retrieved PDF excerpts it inspected; do not show internal
+citation-validation wording on `/study` when the model omits those citations.
+
+Reason:
+
+- a clear statement that the PDF lacks sufficient evidence is more trustworthy
+  than an invented answer
+- the cited excerpts make the basis for that conclusion inspectable, even though
+  they do not prove absence across every PDF page
+- validation details such as `pdf_source_numbers` are implementation concerns,
+  not helpful public-demo messages
+
+Mitigation:
+
+- instruct the model to cite the closest retrieved PDF sources even when it says
+  the question is unsupported
+- continue rejecting uncited model output so it cannot become a successful answer
+- show a recovery-oriented message on `/study` and retain the raw output in
+  `/logic` for diagnosis
+
 ## Evaluate Before And After Retrieval Changes
 
 Decision: create a small versioned evaluation suite before changing retrieval or

@@ -133,11 +133,11 @@ they should not poison the success cache.
 
 ## Current Boundary
 
-The answer result and failure boundaries are established enough to support the next
-portfolio slice. Page-aware metadata now flows through loading, chunking, retrieval,
-prompts, and answer rendering. The next boundary is to make long-document summaries
-cover the document and evaluate changes against a versioned local dataset before
-adding persistence.
+Portfolio V1 evidence work is complete. Page-aware metadata flows through loading,
+chunking, retrieval, prompts, and answer rendering; coverage-aware context selection
+and narrower intent routing improved the versioned retrieval result from 15/17 to
+17/17 scored cases. The next architecture boundary is persistence and history, only
+when the application needs them.
 
 The answer result model carries structured answer content, citations, retrieved PDF
 sources, model-call metadata, raw provider output, and application errors. Future

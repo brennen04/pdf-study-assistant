@@ -59,14 +59,20 @@ examples, or frontend UI fields.
 
 ## Push
 
-Direct Space remote:
+This repository already configures both `hf` and `space` remotes for:
 
-```powershell
-git remote add space https://huggingface.co/spaces/<your-username>/<your-space-name>
-git push space main
+```text
+https://huggingface.co/spaces/draxnebula/pdf-study-assistant
 ```
 
-If the Space uses another default branch, push to that branch instead.
+After committing the change on `main`, push once with either remote. Prefer `hf`:
+
+```powershell
+git push hf main
+```
+
+Hugging Face then rebuilds the Docker Space automatically. Do not push the same
+commit to both aliases; they target the same Space.
 
 ## Smoke Test
 

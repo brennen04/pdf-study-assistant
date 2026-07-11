@@ -197,7 +197,12 @@ def generate_answer_once(
                         model_call=model_call,
                         error=AnswerError(
                             code="missing_pdf_source_reference",
-                            message=str(error),
+                            message=(
+                                "I couldn't verify a PDF-grounded answer because the "
+                                "model did not identify the PDF excerpts it used. Try "
+                                "rephrasing the question or check whether the topic "
+                                "appears in the document."
+                            ),
                             details=answer,
                         ),
                     )

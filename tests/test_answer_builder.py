@@ -26,6 +26,7 @@ class BuildGroundedAnswerPromptTests(unittest.TestCase):
         self.assertIn('"pdf_answer"', prompt)
         self.assertIn('"internet_supplement"', prompt)
         self.assertIn("Always include one or more PDF source numbers", prompt)
+        self.assertIn("Never return an empty pdf_source_numbers list", prompt)
         self.assertIn("For study transformations", prompt)
         self.assertIn("synthesize from the PDF context", prompt)
 

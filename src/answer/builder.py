@@ -93,6 +93,9 @@ Rules:
 - Always include one or more PDF source numbers from the PDF context above.
 - This rule still applies when internet context is enabled. The Internet supplement
   must not replace the PDF evidence for pdf_answer.
+- If the PDF does not contain enough information, say that in pdf_answer and cite
+  the one or more closest retrieved PDF sources you used to reach that conclusion.
+  Never return an empty pdf_source_numbers list for an unsupported question.
 - When internet context is enabled, internet_supplement must be a non-empty string. If web search adds no useful information, say that clearly in internet_supplement.
 - When internet context is disabled, internet_supplement must be null.
 - Keep web citations empty unless internet context provides citation information.
