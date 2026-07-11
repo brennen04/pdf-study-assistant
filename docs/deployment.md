@@ -6,6 +6,18 @@ Use Docker because the app depends on Streamlit, SentenceTransformers, Torch,
 and a local embedding model. Streamlit Community Cloud is possible, but Hugging
 Face Spaces is the better first deployment target for this ML-heavy app.
 
+## Current Hosting Constraint
+
+Hugging Face has deprecated its built-in Streamlit SDK, so this app requires a
+Docker Space there. The existing Space was previously deployed as Docker, but its
+current runtime reports a scheduling failure and both attempted update paths have
+been rejected by the remote. This is an external deployment incident; it does not
+establish that the application or Docker configuration is invalid.
+
+Do not force-push or rewrite the Space Git history while the remote update failure
+is unresolved. Keep the GitHub repository, green CI, and local smoke-test evidence
+as the public Portfolio V1 proof in the meantime.
+
 ## Required Files
 
 - `Dockerfile`
@@ -57,22 +69,22 @@ EMBEDDING_MODEL_LOCAL_ONLY=false
 Never commit real secrets in `.env`, `.env.example`, source code, README
 examples, or frontend UI fields.
 
-## Push
+## Deploy
 
-This repository already configures both `hf` and `space` remotes for:
-
-```text
-https://huggingface.co/spaces/draxnebula/pdf-study-assistant
-```
-
-After committing the change on `main`, push once with either remote. Prefer `hf`:
+After the remote update path is working, deploy with the Hugging Face HTTP uploader.
+Authenticate with a Hugging Face write token:
 
 ```powershell
-git push hf main
+.\venv\Scripts\hf.exe auth login
 ```
 
-Hugging Face then rebuilds the Docker Space automatically. Do not push the same
-commit to both aliases; they target the same Space.
+Then upload the local repository files:
+
+```powershell
+.\venv\Scripts\hf.exe upload draxnebula/pdf-study-assistant . . --repo-type space --commit-message "Deploy Portfolio V1"
+```
+
+Wait for the subsequent Space build to finish.
 
 ## Smoke Test
 
