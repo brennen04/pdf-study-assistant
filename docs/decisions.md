@@ -203,6 +203,34 @@ Reason:
 - public users need a concise entry point
 - Codex needs instructions without duplicating every architecture detail
 
+## Use Streamlit Community Cloud As The Primary Public Host
+
+Decision: deploy the public portfolio app from GitHub through Streamlit Community
+Cloud; retain Docker and the Hugging Face workflow only as a portable runtime and
+legacy target.
+
+Reason:
+
+- the full PDF-to-answer workflow has been verified on Community Cloud
+- the platform matches the Streamlit application model and keeps the release path
+  small enough for a portfolio project
+- GitHub Actions can own deterministic verification while Community Cloud owns the
+  deployed runtime
+- Hugging Face rejected updates to the existing CPU Basic Docker Space with a
+  platform-level `402 Payment Required`
+
+Tradeoff:
+
+- local embeddings make cold starts and initial PDF processing resource-intensive
+- session-local state is not durable across instance restarts
+
+Mitigation:
+
+- pin dependencies and Python 3.11 consistently across CI and deployment contracts
+- cache the embedding model as a Streamlit resource within a running instance
+- verify every deployed revision with the documented end-to-end smoke test
+- add persistence or hosted embeddings only when measured use justifies them
+
 ## Preserve Raw Model Output In Answer Results
 
 Decision: introduce structured `AnswerResult`, `ModelCall`, `RetrievedSource`,
@@ -340,7 +368,8 @@ terms and stable source handling are documented.
 
 Improvement note: coverage-aware selection and narrower transformation phrases improved
 the deterministic retrieval baseline from 15/17 to 17/17 scored cases without adding
-model calls. Reviewed answer quality remains the next evidence boundary.
+model calls. A 6/6 manual scenario review passed on one real PDF; broader reviewed
+answer quality remains the next evidence boundary.
 
 CI note: cache the configured embedding model, then run the retrieval benchmark in
 local-only mode with a required 17/17 scored-case result. This keeps the CI check

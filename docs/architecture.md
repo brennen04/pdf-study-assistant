@@ -1,9 +1,8 @@
 # Architecture
 
-PDF Study Assistant is a Streamlit RAG study tool and AI engineering showcase.
-It should stay small enough to learn from while demonstrating production-shaped
-boundaries: ingestion, retrieval, prompting, model calls, answer contracts,
-traceability, evaluation, and deployment.
+PDF Study Assistant is a layered Streamlit RAG application. This document owns
+runtime shape, data flow, state, and module boundaries; product status and quality
+results belong in the README and evaluation document.
 
 Core product rule:
 
@@ -51,6 +50,11 @@ PDF bytes -> extracted text -> chunks -> embeddings -> DocumentIndex
 Question answering:
 question -> question embedding -> retrieved PDF chunks -> prompt -> model call -> AnswerResult
 ```
+
+The workflow is deliberately split at application boundaries. Provider responses
+are parsed into an `AnswerResult`, citations are validated against the retrieved
+sources held by the application, and expected provider failures are mapped to
+stable `AnswerError` codes before presentation.
 
 The `DocumentIndex` is stable for the current uploaded PDF and can be reused
 across questions. A question, retrieved sources, prompt, model call, and answer
@@ -133,12 +137,12 @@ they should not poison the success cache.
 
 ## Current Boundary
 
-Portfolio V1 evidence work is complete. Page-aware metadata flows through loading,
-chunking, retrieval, prompts, and answer rendering; coverage-aware context selection
-and narrower intent routing improved the versioned retrieval result from 15/17 to
-17/17 scored cases. The next architecture boundary is persistence and history, only
-when the application needs them.
-
 The answer result model carries structured answer content, citations, retrieved PDF
 sources, model-call metadata, raw provider output, and application errors. Future
 persistence should follow these application models rather than define them first.
+
+The current system is intentionally process-local: document indexes, answer state,
+and caches live within the Streamlit session/runtime. That is appropriate for the
+public single-session demo, but it means uploads and history are not durable across
+session expiry or deployment restarts. Persistence is the next major architecture
+boundary only when user history becomes a product requirement.

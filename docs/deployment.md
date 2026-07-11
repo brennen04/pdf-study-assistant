@@ -1,107 +1,76 @@
 # Deployment
 
-Primary target: Hugging Face Spaces with the Docker SDK.
+The public demo is deployed from GitHub to Streamlit Community Cloud. This is the
+primary release path because it matches the Streamlit runtime directly and has
+successfully run the complete PDF-to-answer workflow.
 
-Use Docker because the app depends on Streamlit, SentenceTransformers, Torch,
-and a local embedding model. Streamlit Community Cloud is possible, but Hugging
-Face Spaces is the better first deployment target for this ML-heavy app.
+## Streamlit Community Cloud Contract
 
-## Current Hosting Constraint
+Configure the deployment with:
 
-Hugging Face has deprecated its built-in Streamlit SDK, so this app requires a
-Docker Space there. The existing Space was previously deployed as Docker, but its
-current runtime reports a scheduling failure and both attempted update paths have
-been rejected by the remote. This is an external deployment incident; it does not
-establish that the application or Docker configuration is invalid.
+- repository: `brennen04/pdf-study-assistant`
+- entry point: `app.py`
+- Python: 3.11, matching CI and the Docker image
+- secret: `LLM_API_KEY`
+- optional setting: `EMBEDDING_MODEL_LOCAL_ONLY=false`
 
-Do not force-push or rewrite the Space Git history while the remote update failure
-is unresolved. Keep the GitHub repository, green CI, and local smoke-test evidence
-as the public Portfolio V1 proof in the meantime.
+Streamlit installs `requirements.txt` during the build. The first document may take
+longer to process while `sentence-transformers` downloads and initializes
+`all-MiniLM-L6-v2`; later work in the same running instance can reuse Streamlit's
+cached resource.
 
-## Required Files
+Add secrets through the Community Cloud app settings, using TOML syntax:
 
-- `Dockerfile`
-- `app.py`
-- `requirements.txt`
-- `src/`
-- `.env.example`
-- `README.md`
-- `docs/`
-
-`README.md` must keep the Hugging Face Space front matter at the top:
-
-```yaml
----
-title: PDF Study Assistant
-emoji: "\U0001F4DA"
-colorFrom: blue
-colorTo: green
-sdk: docker
-app_port: 8501
-pinned: false
-short_description: PDF-grounded RAG study assistant with optional internet context
----
+```toml
+LLM_API_KEY = "your-real-api-key"
+EMBEDDING_MODEL_LOCAL_ONLY = "false"
 ```
 
-## Docker Contract
+Never commit deployment secrets to `.env`, `.env.example`, source files, or docs.
+The application intentionally has no frontend API-key field.
 
-The Dockerfile should:
+## Release Flow
 
-- start from Python 3.11
-- install `requirements.txt`
-- copy the project files
-- expose port `8501`
-- run `streamlit run app.py`
+1. Run the local compile, unit-test, and retrieval-evaluation checks.
+2. Push the reviewed revision to GitHub and confirm the `Test and evaluate` workflow.
+3. Let Streamlit Community Cloud rebuild from the configured branch.
+4. Inspect build logs if dependency installation or model initialization fails.
+5. Run the smoke test below against the deployed revision.
 
-The Streamlit command disables XSRF protection because Hugging Face serves the
-app through its own proxy. Without that setting, deployed file uploads may fail
-with browser-side `403` errors.
-
-## Secrets
-
-Set these in Hugging Face Space settings:
-
-```text
-LLM_API_KEY=your-real-api-key
-EMBEDDING_MODEL_LOCAL_ONLY=false
-```
-
-Never commit real secrets in `.env`, `.env.example`, source code, README
-examples, or frontend UI fields.
-
-## Deploy
-
-After the remote update path is working, deploy with the Hugging Face HTTP uploader.
-Authenticate with a Hugging Face write token:
-
-```powershell
-.\venv\Scripts\hf.exe auth login
-```
-
-Then upload the local repository files:
-
-```powershell
-.\venv\Scripts\hf.exe upload draxnebula/pdf-study-assistant . . --repo-type space --commit-message "Deploy Portfolio V1"
-```
-
-Wait for the subsequent Space build to finish.
+This keeps CI and deployment separate: GitHub Actions proves deterministic code and
+retrieval behavior, while the deployment smoke test covers cloud secrets, model
+download, provider access, and Streamlit runtime behavior.
 
 ## Smoke Test
 
-After the Space builds:
+1. Open `/study` and upload a text-based PDF.
+2. Confirm extraction, chunking, embedding, and indexing complete.
+3. Ask a factual question and verify that the answer cites relevant PDF pages.
+4. Ask for a summary and verify coverage beyond the document's opening pages.
+5. Ask an unsupported question and verify that the app reports insufficient PDF
+   evidence instead of inventing an answer.
+6. Enable internet context and verify that the web expansion remains visually
+   separate from the PDF answer.
+7. Open `/logic` and inspect the selected strategy, chunks, prompt, model metadata,
+   raw output, and any application error details.
 
-1. Open `/study`.
-2. Upload a text-based PDF.
-3. Confirm the document index prepares successfully.
-4. Ask a question.
-5. Confirm the answer is PDF-grounded.
-6. Enable internet context and confirm the answer includes a separate web-based
-   expansion.
-7. Open `/logic` and confirm extracted text, chunks, sources, prompt, and answer metadata are inspectable.
+## Operational Constraints
 
-## Caveats
+- Uploaded documents, indexes, and answer history are session-scoped and not durable.
+- Text extraction supports text-based PDFs; scanned documents require future OCR.
+- Cold starts and first-use model downloads can be slower than local cached runs.
+- Community Cloud resource limits make very large PDFs a bounded public-demo case,
+  not a high-throughput production workload.
+- Web citations are experimental until structured Google grounding metadata is
+  extracted from provider responses.
 
-- First PDF processing may be slow while the embedding model downloads.
-- `sentence-transformers` and `torch` make builds heavy.
-- If deployment becomes too slow, consider hosted embeddings, upgraded Space hardware, or persisted indexes.
-- Do not add deployment complexity until the app model needs it.
+## Legacy Hugging Face Target
+
+The repository retains a `Dockerfile` and manual GitHub workflow for the earlier
+Hugging Face Spaces target. That route is not the primary deployment: updates to the
+existing Docker Space on CPU Basic were rejected with `402 Payment Required`, an
+external platform constraint rather than an application build failure.
+
+The Docker contract remains useful as a portable runtime specification: Python 3.11,
+port `8501`, and `streamlit run app.py`. Do not rewrite Space history or add deployment
+infrastructure unless Hugging Face becomes an active target again.

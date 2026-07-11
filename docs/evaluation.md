@@ -1,8 +1,8 @@
 # Evaluation
 
-This document records how the project measures retrieval quality before and after
-RAG changes. It separates deterministic checks from model-dependent review so the
-repository does not present unstable LLM behavior as a reproducible metric.
+This document owns quality claims for the project. It separates reproducible,
+deterministic retrieval checks from model-dependent manual review so a successful
+provider response is not mistaken for measured RAG quality.
 
 ## Current Dataset
 
@@ -109,5 +109,7 @@ The review assesses:
 Manual review: 6/6 scenarios passed on a text-based software-design PDF.
 Limitations: review was manual and used one document.
 
-LLM-as-judge evaluation is intentionally deferred until the deterministic baseline is
-stable.
+This 6/6 result is directional evidence, not a statistically meaningful benchmark:
+it used one document, one reviewer, and a live model whose output can vary.
+LLM-as-judge evaluation remains deferred until the reviewed dataset is broader and
+the judge rubric, model version, and cost are versioned.
