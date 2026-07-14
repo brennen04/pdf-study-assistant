@@ -16,7 +16,12 @@ class ParsedAnswer:
     pdf_answer: str
     internet_supplement: str | None = None
     pdf_source_numbers: list[int] = field(default_factory=list)
-    web_citations: list[str] = field(default_factory=list)
+    disagreement_note: str | None = None
+
+
+@dataclass(frozen=True)
+class ParsedInternetSupplement:
+    internet_supplement: str
     disagreement_note: str | None = None
 
 
@@ -55,14 +60,32 @@ def parse_answer_output(
 
     disagreement_note = _optional_string(payload, "disagreement_note")
     pdf_source_numbers = _integer_list(payload.get("pdf_source_numbers", []))
-    web_citations = _string_list(payload.get("web_citations", []))
-
     return ParsedAnswer(
         pdf_answer=pdf_answer,
         internet_supplement=internet_supplement,
         pdf_source_numbers=pdf_source_numbers,
-        web_citations=web_citations,
         disagreement_note=disagreement_note,
+    )
+
+
+def parse_internet_supplement_output(raw_output: str) -> ParsedInternetSupplement:
+    """Parse the separate Google Search response."""
+    cleaned_output = raw_output.strip()
+
+    if not cleaned_output:
+        raise AnswerParseError("Model output was empty.")
+
+    try:
+        payload = json.loads(_extract_json_object(cleaned_output))
+    except JSONDecodeError as error:
+        raise AnswerParseError("Model output was not valid JSON.") from error
+
+    if not isinstance(payload, dict):
+        raise AnswerParseError("Model output JSON must be an object.")
+
+    return ParsedInternetSupplement(
+        internet_supplement=_required_string(payload, "internet_supplement"),
+        disagreement_note=_optional_string(payload, "disagreement_note"),
     )
 
 
@@ -136,13 +159,3 @@ def _integer_list(value: Any) -> list[int]:
         raise AnswerParseError("Model output pdf_source_numbers must contain integers.")
 
     return value
-
-
-def _string_list(value: Any) -> list[str]:
-    if not isinstance(value, list):
-        raise AnswerParseError("Model output web_citations must be a list.")
-
-    if not all(isinstance(item, str) for item in value):
-        raise AnswerParseError("Model output web_citations must contain strings.")
-
-    return [item.strip() for item in value if item.strip()]

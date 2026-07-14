@@ -158,8 +158,9 @@ Implemented:
 - PDF ingestion, chunking, local embeddings, in-memory indexing, and retrieval
 - task-intent routing for lookup versus study transformation requests
 - PDF-grounded prompt construction and Gemini answer generation
-- structured answer results with parsed answer sections, citations, and model-call metadata
+- structured answer results with parsed sections, citations, and separate PDF/web call metadata
 - optional Google Search grounding with a visibly separated web expansion
+- structured Google grounding metadata for titled, absolute web citation links
 - `/study` and `/logic` pages for user flow and architecture inspection
 - Streamlit state/runtime/page separation and Streamlit Community Cloud deployment
 - page-aware PDF citations, coverage-aware long-document context, and explicit answer submission
@@ -172,18 +173,16 @@ selection and narrower intent routing raised the versioned retrieval result from
 live in `docs/evaluation.md`; persistence remains a later option that should follow
 the stable application models.
 
-Known limitation: web citations remain experimental until the app extracts Google
-grounding metadata from provider responses. They are not equivalent to verified PDF
-evidence.
+Known limitation: Google grounding metadata can still provide redirect URIs rather
+than final publisher URLs. Web citations are not equivalent to verified PDF evidence.
 
 ## Future Improvements
 
 Future work is selected to demonstrate deeper AI engineering capability through
 measurable product value rather than technology added for its own sake:
 
-- **Grounding and provenance:** extract structured Google grounding metadata for
-  verified titles, publishers, and destination URLs, demonstrating trustworthy
-  multi-source RAG and provider-response handling.
+- **Grounding and provenance:** map grounded claims to their supporting web chunks
+  and evaluate redirect durability, citation validity, and source coverage.
 - **Evaluation engineering:** broaden the versioned dataset across document types
   and lengths; measure retrieval, citation validity, faithfulness, unsupported
   answers, and summary coverage with reproducible reports.

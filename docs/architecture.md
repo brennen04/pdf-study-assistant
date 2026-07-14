@@ -48,7 +48,9 @@ Document ingestion:
 PDF bytes -> extracted text -> chunks -> embeddings -> DocumentIndex
 
 Question answering:
-question -> question embedding -> retrieved PDF chunks -> prompt -> model call -> AnswerResult
+question -> question embedding -> retrieved PDF chunks -> PDF-only model call
+         -> validate PDF citations
+         -> optional Google Search supplement call -> AnswerResult
 ```
 
 The workflow is deliberately split at application boundaries. Provider responses
@@ -70,10 +72,10 @@ study transformation -> broad document context -> synthesize from PDF
 This keeps the product PDF-grounded while allowing different retrieval strategies
 for different study tasks.
 
-When internet context is enabled, the answer result should still keep the PDF
-answer primary, but the internet supplement should add distinct outside context,
-such as broader background, examples, related concepts, caveats, or current
-context.
+When internet context is enabled, the validated PDF answer is completed before a
+separate Google Search call creates the internet supplement. The supplement can
+add distinct outside context, such as broader background, examples, related
+concepts, caveats, or current context, without affecting PDF citation validation.
 
 ## Layers
 
@@ -110,13 +112,13 @@ workflow as much as practical.
 - `src/rag/task_intent.py`: deterministic task-intent classification for lookup versus study transformation requests.
 - `src/rag/pdf_loader.py`, `src/rag/chunker.py`, `src/rag/retriever.py`: focused RAG services.
 - `src/answer/`: answer contract, prompt construction, parsing, validation, and citation display helpers.
-- `src/answer/result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `AnswerError`.
+- `src/answer/result.py`: `AnswerResult`, `ModelCall`, `RetrievedSource`, `WebCitation`, `AnswerError`.
 - `src/answer/builder.py`: PDF-grounded prompt construction.
 - `src/answer/parser.py`: parse structured model output into answer fields.
 - `src/answer/validation.py`: validate parsed answer fields against trusted app state, such as retrieved PDF source numbers.
-- `src/answer/web_citations.py`: format web citations for display, including readable labels for Google grounding redirect URLs.
+- `src/answer/web_citations.py`: safely format titled, absolute web citations for display.
 - `src/providers/`: external provider integrations and provider-adjacent configuration.
-- `src/providers/gemini_client.py`: Gemini integration and optional Google Search grounding.
+- `src/providers/gemini_client.py`: Gemini integration, optional Google Search grounding, and structured grounding-source extraction.
 - `src/providers/embedding_client.py`: local embedding model integration.
 - `src/providers/config.py`: local `.env` loading.
 
@@ -131,15 +133,17 @@ Do not rebuild the PDF index when the user changes a question or toggles
 internet context. Do clear loaded document and answer state when the uploaded
 PDF changes.
 
-LLM calls are deduped by a stable answer cache key derived from the effective
-prompt and internet-context setting. Failed calls should be inspectable, but
-they should not poison the success cache.
+LLM calls are deduped by a stable answer cache key derived from the workflow
+version, effective prompt, and internet-context setting. Failed calls should be
+inspectable, but they should not poison the success cache.
 
 ## Current Boundary
 
 The answer result model carries structured answer content, citations, retrieved PDF
-sources, model-call metadata, raw provider output, and application errors. Future
-persistence should follow these application models rather than define them first.
+sources, separate PDF and internet model-call metadata, raw provider output, and
+application errors. A failed internet supplement remains inspectable without
+discarding an already validated PDF answer. Future persistence should follow these
+application models rather than define them first.
 
 The current system is intentionally process-local: document indexes, answer state,
 and caches live within the Streamlit session/runtime. That is appropriate for the

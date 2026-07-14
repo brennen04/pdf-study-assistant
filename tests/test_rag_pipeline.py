@@ -40,7 +40,6 @@ class RagPipelineTests(unittest.TestCase):
             question_context = build_question_context(
                 question="What matters?",
                 document_index=document_index,
-                internet_context_enabled=True,
                 top_k=1,
             )
 
@@ -51,7 +50,10 @@ class RagPipelineTests(unittest.TestCase):
         self.assertEqual(question_context.retrieved_chunks[0][0].text, "most relevant")
         self.assertEqual(question_context.retrieved_chunks[0][0].page_number, 2)
         self.assertIn("What matters?", question_context.answer_prompt)
-        self.assertIn("Google Search grounding", question_context.answer_prompt)
+        self.assertIn(
+            "Do not use outside or internet information",
+            question_context.answer_prompt,
+        )
 
     def test_build_question_context_uses_coverage_aware_context_for_study_transformation(self):
         document_index = DocumentIndex(

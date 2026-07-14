@@ -1,28 +1,31 @@
 from urllib.parse import urlparse
 
+from src.answer.result import WebCitation
 
 GOOGLE_GROUNDING_REDIRECT_HOST = "vertexaisearch.cloud.google.com"
 GOOGLE_GROUNDING_REDIRECT_PATH_PREFIX = "/grounding-api-redirect/"
 
 
-def format_web_citation(citation: str, citation_number: int) -> str:
+def format_web_citation(citation: WebCitation, citation_number: int) -> str:
     """
     Return a readable Markdown representation for a web citation.
     """
-    cleaned_citation = citation.strip()
+    cleaned_citation = citation.uri.strip()
 
     if not cleaned_citation:
         return ""
 
-    if cleaned_citation.startswith("[") and "](" in cleaned_citation:
-        return cleaned_citation
-
     parsed_url = urlparse(cleaned_citation)
 
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
-        return cleaned_citation
+        return citation.title.strip()
 
-    label = _citation_label(parsed_url.netloc, parsed_url.path, citation_number)
+    label = " ".join(citation.title.split()) or _citation_label(
+        parsed_url.netloc,
+        parsed_url.path,
+        citation_number,
+    )
+    label = label.replace("[", "\\[").replace("]", "\\]")
     return f"[{label}]({cleaned_citation})"
 
 

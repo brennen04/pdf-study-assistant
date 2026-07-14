@@ -1,6 +1,10 @@
 import unittest
 
-from src.answer.parser import AnswerParseError, parse_answer_output
+from src.answer.parser import (
+    AnswerParseError,
+    parse_answer_output,
+    parse_internet_supplement_output,
+)
 
 
 class AnswerParserTests(unittest.TestCase):
@@ -11,7 +15,6 @@ class AnswerParserTests(unittest.TestCase):
               "pdf_answer": "The PDF says this.",
               "pdf_source_numbers": [1, 2],
               "internet_supplement": "The web adds this.",
-              "web_citations": ["https://example.com"],
               "disagreement_note": "The PDF and web disagree."
             }
             """,
@@ -21,7 +24,6 @@ class AnswerParserTests(unittest.TestCase):
         self.assertEqual(parsed_answer.pdf_answer, "The PDF says this.")
         self.assertEqual(parsed_answer.pdf_source_numbers, [1, 2])
         self.assertEqual(parsed_answer.internet_supplement, "The web adds this.")
-        self.assertEqual(parsed_answer.web_citations, ["https://example.com"])
         self.assertEqual(parsed_answer.disagreement_note, "The PDF and web disagree.")
 
     def test_parses_json_code_fence(self):
@@ -43,7 +45,6 @@ class AnswerParserTests(unittest.TestCase):
               "pdf_answer": "This PDF is about retrieval.",
               "pdf_source_numbers": [1],
               "internet_supplement": null,
-              "web_citations": [],
               "disagreement_note": null
             }
             """
@@ -59,7 +60,6 @@ class AnswerParserTests(unittest.TestCase):
               "pdf_answer": "This PDF is about Design by Contract.",
               "pdf_source_numbers":,
               "internet_supplement": null,
-              "web_citations": [],
               "disagreement_note": null
             }
             """
@@ -102,6 +102,21 @@ class AnswerParserTests(unittest.TestCase):
                 '{"pdf_answer": "Answer.", "internet_supplement": "Web answer."}',
                 internet_context_enabled=False,
             )
+
+    def test_parses_separate_internet_supplement(self):
+        supplement = parse_internet_supplement_output(
+            """
+            {
+              "internet_supplement": "The web adds current context.",
+              "disagreement_note": null
+            }
+            """
+        )
+
+        self.assertEqual(
+            supplement.internet_supplement,
+            "The web adds current context.",
+        )
 
 
 if __name__ == "__main__":

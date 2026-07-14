@@ -52,7 +52,7 @@ def render_study_page() -> None:
         submitted = st.form_submit_button("Generate answer")
 
     st.caption(
-        "Enabled: will add web context after the PDF answer."
+        "Enabled: will validate the PDF answer, then add web context separately."
         if use_google_search
         else "Disabled: will answer from the PDF context only."
     )
@@ -70,7 +70,6 @@ def render_study_page() -> None:
                 question_context = get_question_context(
                     question=question.strip(),
                     document_index=document_index,
-                    internet_context_enabled=use_google_search,
                 )
 
             generate_answer_once(
@@ -101,6 +100,9 @@ def render_study_page() -> None:
                     start=1,
                 ):
                     st.markdown(format_web_citation(citation, citation_number))
+
+        if answer_result.internet_error:
+            st.warning(answer_result.internet_error.message)
 
     with st.expander("PDF sources used"):
         sources = answer_result.sources if answer_result else []
