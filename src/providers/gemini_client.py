@@ -1,7 +1,17 @@
 import os
+from dataclasses import dataclass, field
+from urllib.parse import urlparse
+
+from src.answer.result import WebCitation
 
 
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+
+
+@dataclass(frozen=True)
+class GeneratedContent:
+    text: str
+    web_citations: list[WebCitation] = field(default_factory=list)
 
 
 def generate_answer(
@@ -9,7 +19,7 @@ def generate_answer(
     api_key: str | None = None,
     use_google_search: bool = False,
     model_name: str = DEFAULT_GEMINI_MODEL,
-) -> str:
+) -> GeneratedContent:
     """
     Generate an answer with Gemini.
 
@@ -58,4 +68,47 @@ def generate_answer(
     if not answer_text.strip():
         raise ValueError("Gemini returned an empty response.")
 
-    return answer_text
+    return GeneratedContent(
+        text=answer_text,
+        web_citations=_extract_web_citations(response),
+    )
+
+
+def _extract_web_citations(response: object) -> list[WebCitation]:
+    """Extract unique, absolute web sources from Gemini grounding metadata."""
+    candidates = getattr(response, "candidates", None) or []
+
+    if not candidates:
+        return []
+
+    grounding_metadata = getattr(candidates[0], "grounding_metadata", None)
+    grounding_chunks = getattr(grounding_metadata, "grounding_chunks", None) or []
+    citations: list[WebCitation] = []
+    seen_uris: set[str] = set()
+
+    for chunk in grounding_chunks:
+        web = getattr(chunk, "web", None)
+
+        if web is None:
+            continue
+
+        uri = (getattr(web, "uri", None) or "").strip()
+        parsed_uri = urlparse(uri)
+
+        if (
+            parsed_uri.scheme not in {"http", "https"}
+            or not parsed_uri.netloc
+            or uri in seen_uris
+        ):
+            continue
+
+        title = (getattr(web, "title", None) or "").strip()
+        citations.append(
+            WebCitation(
+                title=title or parsed_uri.netloc.removeprefix("www."),
+                uri=uri,
+            )
+        )
+        seen_uris.add(uri)
+
+    return citations

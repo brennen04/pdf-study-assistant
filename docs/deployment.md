@@ -61,8 +61,8 @@ download, provider access, and Streamlit runtime behavior.
 - Cold starts and first-use model downloads can be slower than local cached runs.
 - Community Cloud resource limits make very large PDFs a bounded public-demo case,
   not a high-throughput production workload.
-- Web citations are experimental until structured Google grounding metadata is
-  extracted from provider responses.
+- Web citations use structured Google grounding metadata, but Google can return
+  redirect URIs rather than final publisher URLs.
 
 ## Legacy Hugging Face Target
 

@@ -20,6 +20,13 @@ class RetrievedSource:
 
 
 @dataclass(frozen=True)
+class WebCitation:
+    """A web source returned by provider grounding metadata."""
+    title: str
+    uri: str
+
+
+@dataclass(frozen=True)
 class ModelCall:
     """
     Metadata for one LLM call.
@@ -58,9 +65,12 @@ class AnswerResult:
     sources: list[RetrievedSource]
     model_call: ModelCall
     pdf_source_numbers: list[int] = field(default_factory=list)
-    web_citations: list[str] = field(default_factory=list)
+    web_citations: list[WebCitation] = field(default_factory=list)
     disagreement_note: str | None = None
     error: AnswerError | None = None
+    internet_context_requested: bool = False
+    internet_model_call: ModelCall | None = None
+    internet_error: AnswerError | None = None
 
     @property
     def is_success(self) -> bool:

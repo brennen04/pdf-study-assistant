@@ -1,5 +1,6 @@
 import streamlit as st
 
+from src.answer.result import ModelCall
 from src.answer.web_citations import format_web_citation
 from src.streamlit_app.pages.shared import render_current_pdf_status, render_page_header
 from src.streamlit_app.runtime import get_question_context, load_current_document
@@ -67,12 +68,12 @@ def render_logic_page() -> None:
     if answer_result is not None:
         remember_question_settings(
             question=answer_result.question,
-            internet_context_enabled=answer_result.model_call.use_google_search,
+            internet_context_enabled=answer_result.internet_context_requested,
         )
         if st.session_state.get("logic_synced_answer_question") != answer_result.question:
             st.session_state["logic_question"] = answer_result.question
             st.session_state["logic_internet_context"] = (
-                answer_result.model_call.use_google_search
+                answer_result.internet_context_requested
             )
             st.session_state["logic_synced_answer_question"] = answer_result.question
 
@@ -105,7 +106,6 @@ def render_logic_page() -> None:
     question_context = get_question_context(
         question=question.strip(),
         document_index=document_index,
-        internet_context_enabled=use_google_search,
     )
 
     st.write(f"Task intent: {question_context.task_intent.value}")
@@ -128,9 +128,9 @@ def render_logic_page() -> None:
         ):
             st.write(chunk.text)
 
-    st.subheader("Prompt")
+    st.subheader("PDF Answer Prompt")
     st.text_area(
-        "LLM prompt",
+        "PDF-only LLM prompt",
         question_context.answer_prompt,
         height=350,
     )
@@ -188,10 +188,28 @@ def render_logic_page() -> None:
             st.write("Disagreement note:")
             st.write(answer_result.disagreement_note)
 
-    model_call = answer_result.model_call
+        if answer_result.internet_error:
+            st.warning(answer_result.internet_error.message)
+            st.write(f"Internet error code: {answer_result.internet_error.code}")
+            if answer_result.internet_error.details:
+                st.text_area(
+                    "Internet error details",
+                    answer_result.internet_error.details,
+                    height=120,
+                )
+
+    st.subheader("PDF Model Call")
+    _render_model_call(answer_result.model_call, "PDF")
+
+    if answer_result.internet_model_call is not None:
+        st.subheader("Internet Supplement Model Call")
+        _render_model_call(answer_result.internet_model_call, "Internet")
+
+
+def _render_model_call(model_call: ModelCall, label: str) -> None:
     st.write(f"Provider: {model_call.provider}")
     st.write(f"Model: {model_call.model_name}")
-    st.write(f"Internet context enabled: {model_call.use_google_search}")
+    st.write(f"Google Search enabled: {model_call.use_google_search}")
 
     if model_call.latency_seconds is not None:
         st.write(f"Latency: {model_call.latency_seconds:.2f} seconds")
@@ -199,7 +217,13 @@ def render_logic_page() -> None:
     st.write(f"Created at: {model_call.created_at.isoformat()}")
 
     st.text_area(
-        "Raw model output",
+        f"{label} prompt",
+        model_call.prompt,
+        height=250,
+    )
+
+    st.text_area(
+        f"{label} raw model output",
         model_call.raw_output or "",
         height=250,
     )

@@ -5,18 +5,10 @@ from src.rag.document import DocumentChunk
 def build_grounded_answer_prompt(
     question: str,
     retrieved_chunks: list[tuple[DocumentChunk, float | None]],
-    internet_context_enabled: bool = False,
-    web_context: list[str] | None = None,
     task_intent: TaskIntent = TaskIntent.FACTUAL_LOOKUP,
 ) -> str:
-    """
-    Build the prompt that will be sent to a language model.
-
-    PDF context is the primary source. Optional web context can supplement the
-    answer, but it must not replace or override what the PDF says.
-    """
+    """Build the PDF-only prompt that must pass citation validation."""
     cleaned_question = question.strip()
-    web_context = web_context or []
 
     if not cleaned_question:
         raise ValueError("question must not be empty.")
@@ -38,68 +30,25 @@ def build_grounded_answer_prompt(
         )
 
     context = "\n\n".join(context_sections)
-    web_context_text = "\n\n".join(
-        f"Web source {index}:\n{source.strip()}"
-        for index, source in enumerate(web_context, start=1)
-        if source.strip()
-    )
-
-    if web_context_text:
-        internet_instruction = (
-            "After the PDF-based answer, add a separate Internet supplement "
-            "using the internet context below."
-        )
-        web_section = web_context_text
-    elif internet_context_enabled:
-        internet_instruction = (
-            "After the PDF-based answer, use Google Search grounding to add a "
-            "separate Internet supplement."
-        )
-        web_section = (
-            "Internet context is enabled through Google Search grounding. "
-            "Use web information only in the separate Internet supplement."
-        )
-    else:
-        internet_instruction = (
-            "Do not add internet information because internet context is disabled."
-        )
-        web_section = "Internet context is disabled."
-
     return f"""You are a study assistant.
 
-Answer the question in two stages:
-1. First, answer using the PDF context.
-2. {internet_instruction}
+Answer the question using only the PDF context below.
 
 Rules:
-- Treat the PDF as the primary source.
-- Treat internet context as a supplement that can add useful information but must not contradict or replace what the PDF says.
-- Do not use internet context to replace or hide what the PDF says.
+- Do not use outside or internet information.
 - For study transformations such as summaries, notes, outlines, flashcards, explanations, or study guides, synthesize from the PDF context instead of looking for an existing summary or note inside the PDF.
-- For factual lookup questions, if the PDF context does not contain enough information, say that clearly before using internet context.
-- Keep PDF-based information and internet-based information separate.
-- If the PDF and internet context disagree, point out the disagreement.
-- If the PDF does not answer the question and internet context is enabled, provide a separate Internet supplement instead of presenting it as the PDF answer.
+- For factual lookup questions, if the PDF context does not contain enough information, say that clearly.
 - Keep the answer clear, concise, and useful for studying.
 - Return only valid JSON. Do not wrap it in Markdown.
 - The JSON object must use this schema:
   {{
     "pdf_answer": "Answer grounded only in the PDF context. Say when the PDF does not contain enough information.",
-    "pdf_source_numbers": [1, 2],
-    "internet_supplement": "Separate internet supplement when internet context is enabled; otherwise null.",
-    "web_citations": ["Web citation or URL when available"],
-    "disagreement_note": "PDF/internet disagreement, or null when there is no disagreement."
+    "pdf_source_numbers": [1, 2]
   }}
 - Always include one or more PDF source numbers from the PDF context above.
-- This rule still applies when internet context is enabled. The Internet supplement
-  must not replace the PDF evidence for pdf_answer.
 - If the PDF does not contain enough information, say that in pdf_answer and cite
   the one or more closest retrieved PDF sources you used to reach that conclusion.
   Never return an empty pdf_source_numbers list for an unsupported question.
-- When internet context is enabled, internet_supplement must be a non-empty string. If web search adds no useful information, say that clearly in internet_supplement.
-- When internet context is disabled, internet_supplement must be null.
-- Keep web citations empty unless internet context provides citation information.
-- Do not write inline web citation markers such as "cite 1", "cite 2", or "cite 3" inside pdf_answer or internet_supplement. Put web sources only in web_citations.
 
 Question:
 {cleaned_question}
@@ -110,7 +59,42 @@ Task intent:
 PDF context:
 {context}
 
-Internet context:
-{web_section}
-
 Answer:"""
+
+
+def build_internet_supplement_prompt(
+    question: str,
+    pdf_answer: str,
+) -> str:
+    """Build the separate Google Search prompt used after PDF validation."""
+    cleaned_question = question.strip()
+    cleaned_pdf_answer = pdf_answer.strip()
+
+    if not cleaned_question:
+        raise ValueError("question must not be empty.")
+
+    if not cleaned_pdf_answer:
+        raise ValueError("pdf_answer must not be empty.")
+
+    return f"""You are adding a separate internet supplement to a PDF-grounded answer.
+
+Use Google Search to add useful outside context, fill gaps, or provide current
+information. Do not rewrite the PDF answer or present web information as if it
+came from the PDF. If the web and PDF disagree, describe the disagreement.
+
+Return only valid JSON. Do not wrap it in Markdown. Use this schema:
+{{
+  "internet_supplement": "Useful outside context, or a clear statement that search added nothing useful.",
+  "disagreement_note": "PDF/internet disagreement, or null when there is no disagreement."
+}}
+
+Do not invent or return citation URLs. The application reads web sources directly
+from Google Search grounding metadata.
+
+Question:
+{cleaned_question}
+
+Validated PDF answer:
+{cleaned_pdf_answer}
+
+Internet supplement:"""

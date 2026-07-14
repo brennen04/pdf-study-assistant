@@ -253,17 +253,19 @@ Mitigation:
   citation, and disagreement fields
 - validate parsed PDF source numbers against retrieved PDF sources before
   storing an answer as successful
-- keep raw output on `ModelCall`
+- generate and validate the PDF answer without Google Search before making a
+  separate internet-supplement call
+- keep each call's prompt, latency, and raw output on its own `ModelCall`
 - represent malformed model output as an application error and avoid caching it
   as a successful answer
-- request a non-empty `internet_supplement` when internet context is enabled,
-  but use an explicit fallback message if the model returns `null`
+- preserve a validated PDF answer when only the internet-supplement call fails,
+  and leave that partial result uncached so the supplement can be retried
 - reject internet supplements when internet context is disabled
 
-## Render Grounding Redirects As Readable Citations
+## Extract Web Citations From Grounding Metadata
 
-Decision: keep raw web citation URLs in answer results, but treat web citations as
-experimental until provider grounding metadata is extracted and rendered.
+Decision: build `WebCitation` objects from Gemini grounding chunks instead of
+trusting citation strings written by the model.
 
 Reason:
 
@@ -271,22 +273,21 @@ Reason:
   redirect URLs
 - those URLs are valid link targets but poor reading material
 - the user needs clear source boundaries without visual noise
-- preserving the original URL keeps traceability and debugging possible
-- model-generated URLs are not equivalent to verified provider grounding records
+- provider metadata supplies a title and URI for each grounded web chunk
+- model-generated relative redirect paths produce broken links
+- preserving the provider URI keeps traceability and debugging possible
 
 Tradeoff:
 
-- the current app does not yet extract richer grounding metadata such as source
-  title, publisher, or final destination URL
+- provider URIs can still be Google redirects rather than final publisher URLs
+- grounding-support-to-claim mapping is not yet rendered inline
 
 Mitigation:
 
-- render Google grounding redirects as stable labels such as
-  `Google Search result 1`
-- render normal URLs by domain
-- keep the original URL as the Markdown link target
-- revisit provider metadata extraction when the Gemini client returns structured
-  model-call metadata instead of only response text
+- accept only absolute HTTP(S) grounding URIs
+- deduplicate citations by URI and use grounding titles as readable labels
+- ignore model-authored citation fields and relative redirect paths
+- preserve the provider URI as the Markdown link target
 
 ## Make PDF Evidence Page-Aware
 

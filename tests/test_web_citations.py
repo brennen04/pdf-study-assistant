@@ -1,38 +1,38 @@
 import unittest
 
+from src.answer.result import WebCitation
 from src.answer.web_citations import format_web_citation
 
 
 class WebCitationTests(unittest.TestCase):
     def test_formats_google_grounding_redirect_url_with_readable_label(self):
-        citation = (
+        uri = (
             "https://vertexaisearch.cloud.google.com/grounding-api-redirect/"
             "AUZIYQF8sBAGuYjrqfPhYRzGbLZeEEwMbhX"
         )
+        citation = WebCitation(title="Example source", uri=uri)
 
         self.assertEqual(
             format_web_citation(citation, citation_number=2),
-            f"[Google Search result 2]({citation})",
+            f"[Example source]({uri})",
         )
 
     def test_formats_regular_url_with_domain_label(self):
-        citation = "https://www.example.com/article"
+        citation = WebCitation(title="Example article", uri="https://www.example.com/article")
 
         self.assertEqual(
             format_web_citation(citation, citation_number=1),
-            "[example.com](https://www.example.com/article)",
+            "[Example article](https://www.example.com/article)",
         )
 
-    def test_leaves_plain_text_citation_unchanged(self):
+    def test_does_not_link_relative_redirect(self):
         self.assertEqual(
-            format_web_citation("Example source", citation_number=1),
+            format_web_citation(
+                WebCitation("Example source", "/grounding-api-redirect/token"),
+                citation_number=1,
+            ),
             "Example source",
         )
-
-    def test_leaves_existing_markdown_link_unchanged(self):
-        citation = "[Example](https://example.com)"
-
-        self.assertEqual(format_web_citation(citation, citation_number=1), citation)
 
 
 if __name__ == "__main__":

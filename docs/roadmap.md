@@ -21,7 +21,7 @@ design a slice -> establish evidence -> implement -> verify -> record the decisi
 - Explicit answer submission, rerun-safe state, stable document caching, and
   public-facing error mapping.
 - Visibly separated optional internet expansion through Gemini Google Search
-  grounding.
+  grounding, with web citations extracted from structured grounding metadata.
 - Versioned retrieval evaluation enforced in CI; scored cases improved from 15/17
   to 17/17, with a 6/6 manual real-PDF scenario review.
 - Successful public deployment through Streamlit Community Cloud.
@@ -31,8 +31,8 @@ design a slice -> establish evidence -> implement -> verify -> record the decisi
 Each slice should produce concrete engineering evidence: an explicit contract, an
 evaluation result, an operational measurement, or a documented tradeoff.
 
-1. **Grounding and provenance:** extract structured Google grounding metadata so
-   web citations use verified titles, publishers, and destination URLs.
+1. **Grounding evaluation:** map grounded claims to their supporting web chunks and
+   measure redirect durability, citation validity, and source coverage.
 2. **Evaluation engineering:** expand the versioned corpus and reviewed rubric
    across document types and lengths, especially faithfulness, unsupported answers,
    citation validity, and summary coverage.

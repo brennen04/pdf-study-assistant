@@ -2,10 +2,46 @@ import unittest
 from types import ModuleType, SimpleNamespace
 from unittest.mock import patch
 
-from src.providers.gemini_client import generate_answer
+from src.answer.result import WebCitation
+from src.providers.gemini_client import _extract_web_citations, generate_answer
 
 
 class GenerateAnswerTests(unittest.TestCase):
+    def test_extracts_absolute_grounding_sources_and_rejects_relative_redirects(self):
+        response = SimpleNamespace(
+            candidates=[
+                SimpleNamespace(
+                    grounding_metadata=SimpleNamespace(
+                        grounding_chunks=[
+                            SimpleNamespace(
+                                web=SimpleNamespace(
+                                    title="Example article",
+                                    uri="https://example.com/article",
+                                )
+                            ),
+                            SimpleNamespace(
+                                web=SimpleNamespace(
+                                    title="Broken redirect",
+                                    uri="/grounding-api-redirect/token",
+                                )
+                            ),
+                            SimpleNamespace(
+                                web=SimpleNamespace(
+                                    title="Duplicate",
+                                    uri="https://example.com/article",
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        )
+
+        self.assertEqual(
+            _extract_web_citations(response),
+            [WebCitation("Example article", "https://example.com/article")],
+        )
+
     def test_rejects_empty_model_response(self):
         class FakeModels:
             def generate_content(self, **_kwargs):

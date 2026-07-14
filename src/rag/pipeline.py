@@ -66,7 +66,6 @@ def build_document_index(
 def build_question_context(
     question: str,
     document_index: DocumentIndex,
-    internet_context_enabled: bool = False,
     top_k: int = 3,
     transformation_context_chunks: int = 8,
 ) -> QuestionContext:
@@ -102,7 +101,6 @@ def build_question_context(
     answer_prompt = build_grounded_answer_prompt(
         question=cleaned_question,
         retrieved_chunks=retrieved_chunks,
-        internet_context_enabled=internet_context_enabled,
         task_intent=task_intent,
     )
 

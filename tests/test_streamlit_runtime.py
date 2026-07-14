@@ -2,6 +2,8 @@ import unittest
 from contextlib import nullcontext
 from unittest.mock import patch
 
+from src.answer.result import WebCitation
+from src.providers.gemini_client import GeneratedContent
 from src.rag.document import DocumentChunk
 from src.rag.pipeline import QuestionContext
 from src.rag.task_intent import TaskIntent
@@ -10,6 +12,13 @@ from src.streamlit_app.runtime import generate_answer_once
 
 def pdf_chunk() -> DocumentChunk:
     return DocumentChunk("document-1", "lecture.pdf", 4, 2, "PDF context")
+
+
+def generated(
+    text: str,
+    web_citations: list[WebCitation] | None = None,
+) -> GeneratedContent:
+    return GeneratedContent(text=text, web_citations=web_citations or [])
 
 
 class GenerateAnswerOnceTests(unittest.TestCase):
@@ -117,14 +126,20 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
                 "src.streamlit_app.runtime.generate_answer",
-                return_value=(
-                    '{"pdf_answer": "The PDF says this.", '
-                    '"pdf_source_numbers": [1], '
-                    '"internet_supplement": "The web adds this.", '
-                    '"web_citations": ["https://example.com"], '
-                    '"disagreement_note": null}'
-                ),
-            ),
+                side_effect=[
+                    generated(
+                        '{"pdf_answer": "The PDF says this.", '
+                        '"pdf_source_numbers": [1], '
+                        '"internet_supplement": null, '
+                        '"disagreement_note": null}'
+                    ),
+                    generated(
+                        '{"internet_supplement": "The web adds this.", '
+                        '"disagreement_note": null}',
+                        [WebCitation("Example", "https://example.com")],
+                    ),
+                ],
+            ) as generate_answer,
             patch(
                 "src.streamlit_app.runtime.remember_answer_result"
             ) as remember_result,
@@ -138,9 +153,16 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertEqual(answer_result.pdf_answer, "The PDF says this.")
         self.assertEqual(answer_result.internet_supplement, "The web adds this.")
         self.assertEqual(answer_result.pdf_source_numbers, [1])
-        self.assertEqual(answer_result.web_citations, ["https://example.com"])
+        self.assertEqual(
+            answer_result.web_citations,
+            [WebCitation("Example", "https://example.com")],
+        )
         self.assertIn("The PDF says this.", answer_result.model_call.raw_output)
-        self.assertTrue(answer_result.model_call.use_google_search)
+        self.assertFalse(answer_result.model_call.use_google_search)
+        self.assertTrue(answer_result.internet_context_requested)
+        self.assertTrue(answer_result.internet_model_call.use_google_search)
+        self.assertFalse(generate_answer.call_args_list[0].kwargs["use_google_search"])
+        self.assertTrue(generate_answer.call_args_list[1].kwargs["use_google_search"])
         self.assertEqual(answer_result.sources[0].text, "PDF context")
         self.assertEqual(answer_result.sources[0].page_number, 4)
         remember_key.assert_called_once()
@@ -159,7 +181,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
                 "src.streamlit_app.runtime.generate_answer",
-                return_value="The PDF says this.",
+                return_value=generated("The PDF says this."),
             ),
             patch(
                 "src.streamlit_app.runtime.remember_answer_result"
@@ -175,7 +197,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         self.assertEqual(answer_result.model_call.raw_output, "The PDF says this.")
         remember_key.assert_not_called()
 
-    def test_uses_fallback_for_missing_internet_supplement_when_search_enabled(self):
+    def test_preserves_pdf_answer_when_internet_supplement_is_unparseable(self):
         question_context = QuestionContext(
             question="What does the PDF say?",
             task_intent=TaskIntent.FACTUAL_LOOKUP,
@@ -189,13 +211,15 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
                 "src.streamlit_app.runtime.generate_answer",
-                return_value=(
-                    '{"pdf_answer": "The PDF says this.", '
-                    '"pdf_source_numbers": [1], '
-                    '"internet_supplement": null, '
-                    '"web_citations": [], '
-                    '"disagreement_note": null}'
-                ),
+                side_effect=[
+                    generated(
+                        '{"pdf_answer": "The PDF says this.", '
+                        '"pdf_source_numbers": [1], '
+                        '"internet_supplement": null, '
+                        '"disagreement_note": null}'
+                    ),
+                    generated("not valid JSON"),
+                ],
             ),
             patch(
                 "src.streamlit_app.runtime.remember_answer_result"
@@ -207,12 +231,13 @@ class GenerateAnswerOnceTests(unittest.TestCase):
 
         answer_result = remember_result.call_args.args[0]
         self.assertTrue(answer_result.is_success)
+        self.assertEqual(answer_result.pdf_answer, "The PDF says this.")
+        self.assertIsNone(answer_result.internet_supplement)
         self.assertEqual(
-            answer_result.internet_supplement,
-            "No separate internet supplement was returned by the model.",
+            answer_result.internet_error.code,
+            "unparseable_internet_supplement",
         )
-        self.assertTrue(answer_result.model_call.use_google_search)
-        remember_key.assert_called_once()
+        remember_key.assert_not_called()
 
     def test_does_not_cache_invalid_pdf_source_reference(self):
         question_context = QuestionContext(
@@ -228,11 +253,10 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
                 "src.streamlit_app.runtime.generate_answer",
-                return_value=(
+                return_value=generated(
                     '{"pdf_answer": "The PDF says this.", '
                     '"pdf_source_numbers": [2], '
                     '"internet_supplement": null, '
-                    '"web_citations": [], '
                     '"disagreement_note": null}'
                 ),
             ),
@@ -262,8 +286,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
         raw_answer = (
             '{"pdf_answer": "The PDF says this.", '
             '"pdf_source_numbers": [], '
-            '"internet_supplement": "The web adds this.", '
-            '"web_citations": ["https://example.com"], '
+            '"internet_supplement": null, '
             '"disagreement_note": null}'
         )
 
@@ -271,7 +294,7 @@ class GenerateAnswerOnceTests(unittest.TestCase):
             patch("src.streamlit_app.runtime.get_answer_cache_key", return_value=None),
             patch(
                 "src.streamlit_app.runtime.generate_answer",
-                return_value=raw_answer,
+                return_value=generated(raw_answer),
             ),
             patch(
                 "src.streamlit_app.runtime.remember_answer_result"
