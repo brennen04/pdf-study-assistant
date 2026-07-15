@@ -116,7 +116,8 @@ def build_answer_cache_key(
 ) -> str:
     return sha256(
         (
-            f"{ANSWER_WORKFLOW_VERSION}\n{use_google_search}\n"
+            f"{ANSWER_WORKFLOW_VERSION}\n{DEFAULT_GEMINI_MODEL}\n"
+            f"{use_google_search}\n"
             f"{question_context.answer_prompt}"
         ).encode("utf-8")
     ).hexdigest()

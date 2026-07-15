@@ -119,11 +119,14 @@ Runtime configuration:
 ```env
 LLM_API_KEY=your-llm-api-key-here
 EMBEDDING_MODEL_LOCAL_ONLY=false
+ENABLE_INTERNET_CONTEXT=false
 ```
 
 `LLM_API_KEY` is required for answer generation. `EMBEDDING_MODEL_LOCAL_ONLY`
 defaults to `false`; set it to `true` only when the embedding model is already
-cached and network access must be disabled.
+cached and network access must be disabled. `ENABLE_INTERNET_CONTEXT` defaults
+to `false`; set it to `true` to show the optional internet-context controls and
+allow the separate Google Search-grounded supplement.
 
 Do not commit real API keys. `.env` is local-only, and `.env.example` is the
 safe public template.

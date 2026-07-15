@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from src.answer.result import WebCitation
 
 
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 
 
 @dataclass(frozen=True)

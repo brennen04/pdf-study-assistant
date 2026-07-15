@@ -13,6 +13,7 @@ Configure the deployment with:
 - Python: 3.11, matching CI and the Docker image
 - secret: `LLM_API_KEY`
 - optional setting: `EMBEDDING_MODEL_LOCAL_ONLY=false`
+- optional feature flag: `ENABLE_INTERNET_CONTEXT=false`
 
 Streamlit installs `requirements.txt` during the build. The first document may take
 longer to process while `sentence-transformers` downloads and initializes
@@ -24,6 +25,7 @@ Add secrets through the Community Cloud app settings, using TOML syntax:
 ```toml
 LLM_API_KEY = "your-real-api-key"
 EMBEDDING_MODEL_LOCAL_ONLY = "false"
+ENABLE_INTERNET_CONTEXT = "false"
 ```
 
 Never commit deployment secrets to `.env`, `.env.example`, source files, or docs.
@@ -49,8 +51,8 @@ download, provider access, and Streamlit runtime behavior.
 4. Ask for a summary and verify coverage beyond the document's opening pages.
 5. Ask an unsupported question and verify that the app reports insufficient PDF
    evidence instead of inventing an answer.
-6. Enable internet context and verify that the web expansion remains visually
-   separate from the PDF answer.
+6. If `ENABLE_INTERNET_CONTEXT` is `true`, enable internet context and verify
+   that the web expansion remains visually separate from the PDF answer.
 7. Open `/logic` and inspect the selected strategy, chunks, prompt, model metadata,
    raw output, and any application error details.
 
