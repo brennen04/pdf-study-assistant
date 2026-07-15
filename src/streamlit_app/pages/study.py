@@ -1,6 +1,7 @@
 import streamlit as st
 
 from src.answer.web_citations import format_web_citation
+from src.streamlit_app.config import is_internet_context_enabled
 from src.streamlit_app.pages.shared import render_page_header, render_upload_control
 from src.streamlit_app.runtime import (
     generate_answer_once,
@@ -30,12 +31,16 @@ def render_study_page() -> None:
         return
 
     _, document_index = loaded_document
+    internet_context_enabled = is_internet_context_enabled()
 
     st.session_state.setdefault("study_question", get_latest_question())
-    st.session_state.setdefault(
-        "study_internet_context",
-        get_latest_internet_context_enabled(),
-    )
+    if internet_context_enabled:
+        st.session_state.setdefault(
+            "study_internet_context",
+            get_latest_internet_context_enabled(),
+        )
+    else:
+        st.session_state["study_internet_context"] = False
 
     with st.form("study_question_form", enter_to_submit=False):
         question = st.text_input(
@@ -43,19 +48,23 @@ def render_study_page() -> None:
             placeholder="Ask a question regarding the PDF content",
             key="study_question",
         )
-        use_google_search = st.toggle(
-            "Internet context",
-            value=False,
-            key="study_internet_context",
-            help="Answer from the PDF, then supplement separately with Google Search grounding.",
-        )
+        if internet_context_enabled:
+            use_google_search = st.toggle(
+                "Internet context",
+                value=False,
+                key="study_internet_context",
+                help="Answer from the PDF, then supplement separately with Google Search grounding.",
+            )
+        else:
+            use_google_search = False
         submitted = st.form_submit_button("Generate answer")
 
-    st.caption(
-        "Enabled: will validate the PDF answer, then add web context separately."
-        if use_google_search
-        else "Disabled: will answer from the PDF context only."
-    )
+    if internet_context_enabled:
+        st.caption(
+            "Enabled: will validate the PDF answer, then add web context separately."
+            if use_google_search
+            else "Disabled: will answer from the PDF context only."
+        )
 
     if submitted:
         remember_question_settings(

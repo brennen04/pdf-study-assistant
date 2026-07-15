@@ -92,6 +92,8 @@ Mitigation:
   enough to route a question away from semantic retrieval
 - when internet context is enabled, ask for a separate expansion with broader
   background, examples, related concepts, caveats, or current context
+- gate the internet-context controls behind `ENABLE_INTERNET_CONTEXT`, defaulting
+  to disabled so deployments can opt into Google Search grounding explicitly
 - improve broad context later with section-aware context or future multi-pass
   summarization for long documents
 

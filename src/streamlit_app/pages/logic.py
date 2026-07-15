@@ -2,6 +2,7 @@ import streamlit as st
 
 from src.answer.result import ModelCall
 from src.answer.web_citations import format_web_citation
+from src.streamlit_app.config import is_internet_context_enabled
 from src.streamlit_app.pages.shared import render_current_pdf_status, render_page_header
 from src.streamlit_app.runtime import get_question_context, load_current_document
 from src.streamlit_app.state import (
@@ -64,31 +65,44 @@ def render_logic_page() -> None:
 
     st.subheader("Question Pipeline")
     answer_result = get_answer_result()
+    internet_context_enabled = is_internet_context_enabled()
 
     if answer_result is not None:
         remember_question_settings(
             question=answer_result.question,
-            internet_context_enabled=answer_result.internet_context_requested,
+            internet_context_enabled=(
+                answer_result.internet_context_requested
+                if internet_context_enabled
+                else False
+            ),
         )
         if st.session_state.get("logic_synced_answer_question") != answer_result.question:
             st.session_state["logic_question"] = answer_result.question
             st.session_state["logic_internet_context"] = (
                 answer_result.internet_context_requested
+                if internet_context_enabled
+                else False
             )
             st.session_state["logic_synced_answer_question"] = answer_result.question
 
-    st.session_state.setdefault(
-        "logic_internet_context",
-        get_latest_internet_context_enabled(),
-    )
+    if internet_context_enabled:
+        st.session_state.setdefault(
+            "logic_internet_context",
+            get_latest_internet_context_enabled(),
+        )
+    else:
+        st.session_state["logic_internet_context"] = False
     st.session_state.setdefault("logic_question", get_latest_question())
 
-    use_google_search = st.toggle(
-        "Internet context for prompt",
-        value=False,
-        key="logic_internet_context",
-        help="Shows how the prompt changes when internet context is enabled.",
-    )
+    if internet_context_enabled:
+        use_google_search = st.toggle(
+            "Internet context for prompt",
+            value=False,
+            key="logic_internet_context",
+            help="Shows how the prompt changes when internet context is enabled.",
+        )
+    else:
+        use_google_search = False
     question = st.text_input(
         "Question to inspect",
         placeholder="What are the main ideas in this PDF?",

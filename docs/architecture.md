@@ -104,6 +104,7 @@ workflow as much as practical.
 
 - `app.py`: entry point, environment loading, page setup, routing.
 - `src/streamlit_app/`: Streamlit-specific runtime, state, and page modules.
+- `src/streamlit_app/config.py`: application feature flags read from the environment.
 - `src/streamlit_app/pages/`: `/study`, `/logic`, and shared Streamlit UI.
 - `src/streamlit_app/state.py`: uploaded PDF state, loaded document state, latest `AnswerResult`, answer cache key.
 - `src/streamlit_app/runtime.py`: Streamlit cache wrappers and answer-generation orchestration.
@@ -132,6 +133,11 @@ Cache stable document work:
 Do not rebuild the PDF index when the user changes a question or toggles
 internet context. Do clear loaded document and answer state when the uploaded
 PDF changes.
+
+When `ENABLE_INTERNET_CONTEXT` is false or absent, the Streamlit pages hide the
+internet-context controls and force new question settings to PDF-only. The
+provider and answer contracts remain unchanged so the feature can be restored
+through configuration rather than a code change.
 
 LLM calls are deduped by a stable answer cache key derived from the workflow
 version, effective prompt, and internet-context setting. Failed calls should be
